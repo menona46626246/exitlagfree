@@ -1,0 +1,26 @@
+{
+  "$comentario": "Perfil de juego exportable/importable por GameRoute Optimizer (sección Juegos). La app nunca sondea hosts fuera de 'targets'.",
+  "id": "3f9c1b2e-0000-4000-8000-000000000001",
+  "name": "Counter-Strike 2",
+  "executablePath": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Counter-Strike Global Offensive\\game\\bin\\win64\\cs2.exe",
+  "executableNames": [ "cs2.exe" ],
+  "arguments": "",
+  "targets": [
+    {
+      "domain": "cs2-ams1.mijuego.com",
+      "ipAddress": null,
+      "ports": [ 27015, 27016 ],
+      "region": "EU-Oeste",
+      "defaultProbe": 0,
+      "httpHealthUrl": null
+    }
+  ],
+  "routeMode": 2,
+  "preferredRelayId": "7a11e2c0-0000-4000-8000-0000000000aa",
+  "blockedRelayIds": [],
+  "protocolPreference": "Auto",
+  "specialRules": null,
+  "notes": "Servidor de la comunidad; probar tras las 21:00 (hora pico).",
+  "autoStartOptimization": true,
+  "autoStopOnExit": true
+}

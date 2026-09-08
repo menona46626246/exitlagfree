@@ -4,11 +4,11 @@ Mejoras futuras (sin compromiso de fecha; ordenadas por valor/riesgo).
 
 ## v0.9 (actual, en desarrollo)
 - [x] Andamiaje multi-proyecto + CI
-- [ ] Modo diagnóstico completo (probes, traceroute, scoring)
-- [ ] Gestión de juegos y relays
-- [ ] Túnel WireGuard (rutas por destino y global) con restauración
-- [ ] Auto-optimización con histéresis y failover
-- [ ] Documentación completa
+- [x] Modo diagnóstico completo (probes, traceroute, scoring)
+- [x] Gestión de juegos y relays
+- [x] Túnel WireGuard (rutas por destino y global) con restauración
+- [x] Auto-optimización con histéresis y failover
+- [x] Documentación completa (docs/, examples/, scripts/, installer/)
 
 ## v1.0 — primera versión estable
 - [ ] Instalador firmado (Inno Setup + certificado propio; hoy script listo, firma no)

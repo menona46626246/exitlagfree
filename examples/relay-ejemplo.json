@@ -1,0 +1,23 @@
+{
+  "$comentario": "Relay WireGuard exportable por GameRoute Optimizer (sección Relays). NUNCA contiene la clave privada (seguridad).",
+  "id": "7a11e2c0-0000-4000-8000-0000000000aa",
+  "name": "VPS Ciudad de México",
+  "provider": "VPS propio (Hetzner/DO/OVH…)",
+  "country": "MX",
+  "city": "Ciudad de México",
+  "endpointHost": "vpsmx.ejemplo.com",
+  "endpointPort": 51820,
+  "publicKey": "aQwEXAMPLEwgEhnjZ2xm6pLvx9KXg8RlVcYzN0sTfUdI=",
+  "allowedIps": "0.0.0.0/0, ::/0",
+  "tunnelAddresses": [ "10.66.0.2/32", "fd42:66::2/128" ],
+  "dnsInternal": "1.1.1.1",
+  "persistentKeepalive": 25,
+  "mtu": 1420,
+  "enabled": true,
+  "priority": 1,
+  "costDescription": "5 USD/mes",
+  "estimatedLoadPercent": 20,
+  "availability": 0.99,
+  "health": null,
+  "notes": "Usar para CS2 hacia EU-Oeste y US-Este."
+}
