@@ -45,7 +45,15 @@ jobs:
         run: dotnet restore src/GameRouteOptimizer.sln
 
       - name: Compilar (Release)
-        run: dotnet build src/GameRouteOptimizer.sln -c Release --no-restore
+        run: |
+          dotnet build src/GameRouteOptimizer.sln -c Release --no-restore 2>&1 | Out-File -FilePath "$env:TEMP\gro-build.log" -Encoding utf8
+          $code = $LASTEXITCODE
+          if ($code -ne 0) {
+            Get-Content "$env:TEMP\gro-build.log" | Select-String -Pattern 'error [A-Z]+[0-9]+' | Select-Object -First 40 | ForEach-Object {
+              Write-Output "::error title=build::$($_.Line)"
+            }
+            exit $code
+          }
 
       - name: Ejecutar tests (xUnit)
         run: dotnet test src/GameRouteOptimizer.sln -c Release --no-build --logger "trx;LogFileName=results.trx"
@@ -87,9 +95,31 @@ jobs:
 
       - name: Compilar núcleo, CLI y servicio (net8.0)
         run: |
-          dotnet build src/GameRouteOptimizer.Core/GameRouteOptimizer.Core.csproj -c Release
-          dotnet build src/GameRouteOptimizer.Cli/GameRouteOptimizer.Cli.csproj -c Release
-          dotnet build src/GameRouteOptimizer.Service/GameRouteOptimizer.Service.csproj -c Release
+          set +e
+          failed=0
+          : > /tmp/gro-build.log
+          for proj in src/GameRouteOptimizer.Core/GameRouteOptimizer.Core.csproj \
+                      src/GameRouteOptimizer.Cli/GameRouteOptimizer.Cli.csproj \
+                      src/GameRouteOptimizer.Service/GameRouteOptimizer.Service.csproj; do
+            dotnet build "$proj" -c Release >> /tmp/gro-build.log 2>&1
+            if [ $? -ne 0 ]; then failed=1; fi
+          done
+          if [ $failed -ne 0 ]; then
+            # Errores de compilación como anotaciones legibles en el resumen del job.
+            grep -E 'error [A-Z]+[0-9]+' /tmp/gro-build.log | head -40 | while IFS= read -r line; do
+              echo "::error title=build::${line}"
+            done
+            exit 1
+          fi
 
       - name: Tests del núcleo en Linux
-        run: dotnet test src/GameRouteOptimizer.Tests/GameRouteOptimizer.Tests.csproj -c Release
+        run: |
+          set +e
+          dotnet test src/GameRouteOptimizer.Tests/GameRouteOptimizer.Tests.csproj -c Release 2>&1 | tee /tmp/gro-test.log
+          code=${PIPESTATUS[0]}
+          if [ $code -ne 0 ]; then
+            grep -E 'error [A-Z]+[0-9]+|Failed!|Failed:' /tmp/gro-test.log | head -40 | while IFS= read -r line; do
+              echo "::error title=tests::${line}"
+            done
+            exit $code
+          fi
