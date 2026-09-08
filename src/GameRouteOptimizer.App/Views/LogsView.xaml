@@ -11,7 +11,7 @@
             <Button Content="Limpiar" Command="{Binding ClearCommand}" />
         </StackPanel>
 
-        <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+        <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}"
                 BorderThickness="1" CornerRadius="8" Padding="10">
             <Grid>
                 <Grid.RowDefinitions>
@@ -29,7 +29,7 @@
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="{Binding Utc, StringFormat={}{0:HH:mm:ss.fff}}" FontFamily="Consolas"
-                                           Foreground="{StaticResource MutedTextBrush}" />
+                                           Foreground="{DynamicResource MutedTextBrush}" />
                                 <TextBlock Grid.Column="1" FontFamily="Consolas">
                                     <Run Text="{Binding Level, Mode=OneWay}" />
                                 </TextBlock>

@@ -5,7 +5,7 @@
         <StackPanel Margin="2">
             <TextBlock Text="Diagnóstico de red (sin necesidad de túnel)" Style="{StaticResource SectionTitle}" />
 
-            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+            <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}"
                     BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
                 <StackPanel>
                     <TextBlock Text="1) Perfil de juego (opcional): mide ruta directa, relays del perfil y traceroute."
@@ -39,11 +39,11 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                <Border Grid.Column="0" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}"
                         BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,6,0">
                     <StackPanel>
                         <TextBlock Text="Resultados y métricas" FontWeight="SemiBold" Margin="0,0,0,6" />
-                        <Border Background="#FF0D1014" CornerRadius="6" MinHeight="240">
+                        <Border Background="{DynamicResource CodeBrush}" CornerRadius="6" MinHeight="240">
                             <ScrollViewer MaxHeight="420" VerticalScrollBarVisibility="Auto">
                                 <TextBlock Text="{Binding Output}" FontFamily="Consolas" FontSize="12"
                                            Margin="8" TextWrapping="Wrap" />
@@ -53,11 +53,11 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                <Border Grid.Column="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}"
                         BorderThickness="1" CornerRadius="8" Padding="10">
                     <StackPanel>
                         <TextBlock Text="Saltos del traceroute" FontWeight="SemiBold" Margin="0,0,0,6" />
-                        <Border Background="#FF0D1014" CornerRadius="6" MinHeight="240" MaxHeight="420">
+                        <Border Background="{DynamicResource CodeBrush}" CornerRadius="6" MinHeight="240" MaxHeight="420">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <ItemsControl ItemsSource="{Binding TraceHops}">
                                     <ItemsControl.ItemTemplate>
@@ -83,7 +83,7 @@
                 </Border>
             </Grid>
 
-            <Border Grid.Row="2" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+            <Border Grid.Row="2" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}"
                     BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,10,0,0">
                 <StackPanel>
                     <TextBlock Text="Recomendación (directa vs relays)" FontWeight="SemiBold" Margin="0,0,0,6" />

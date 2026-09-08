@@ -4,8 +4,13 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="2">
             <TextBlock Text="Configuración" Style="{StaticResource SectionTitle}" />
-            <TextBlock Text="Tema oscuro · idioma: español (v1). Los cambios se aplican al guardar."
-                       Style="{StaticResource Muted}" Margin="0,-6,0,10" />
+            <StackPanel Orientation="Horizontal" Margin="0,-4,0,10">
+                <TextBlock Text="Tema:" Style="{StaticResource Muted}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <ComboBox ItemsSource="{Binding ThemeOptions}" SelectedIndex="{Binding ThemeIndex}"
+                          Width="120" VerticalAlignment="Center" Margin="0,0,10,0" ToolTip="Se aplica al guardar" />
+                <TextBlock Text="· idioma: español (v1). Los cambios se aplican al guardar."
+                           Style="{StaticResource Muted}" VerticalAlignment="Center" />
+            </StackPanel>
 
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -14,7 +19,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Probing -->
-                <Border Grid.Column="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                <Border Grid.Column="0" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}"
                         BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,6,10">
                     <StackPanel>
                         <TextBlock Text="Pruebas de red (probes)" FontWeight="SemiBold" Margin="0,0,0,8" />
@@ -61,7 +66,7 @@
                 </Border>
 
                 <!-- Auto-switch -->
-                <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                <Border Grid.Column="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}"
                         BorderThickness="1" CornerRadius="8" Padding="12" Margin="6,0,0,10">
                     <StackPanel>
                         <TextBlock Text="Optimización automática (auto-switch)" FontWeight="SemiBold" Margin="0,0,0,8" />
@@ -110,7 +115,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Túnel -->
-                <Border Grid.Column="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                <Border Grid.Column="0" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}"
                         BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,6,10">
                     <StackPanel>
                         <TextBlock Text="Túnel WireGuard" FontWeight="SemiBold" Margin="0,0,0,8" />
@@ -140,7 +145,7 @@
                 </Border>
 
                 <!-- General / privacidad -->
-                <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                <Border Grid.Column="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}"
                         BorderThickness="1" CornerRadius="8" Padding="12" Margin="6,0,0,10">
                     <StackPanel>
                         <TextBlock Text="General, logs y privacidad" FontWeight="SemiBold" Margin="0,0,0,8" />

@@ -34,15 +34,28 @@ public sealed class SettingsViewModel : SectionViewModel
         set => Settings.Logging.MinimumLevel = (EventLevel)Math.Clamp(value, 0, 4);
     }
 
+    public string[] ThemeOptions { get; } = { "Oscuro", "Claro" };
+
+    /// <summary>0 = oscuro, 1 = claro (coincide con <see cref="AppSettings.Theme"/>).</summary>
+    public int ThemeIndex
+    {
+        get => Settings.Theme.Equals("Light", StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+        set => Settings.Theme = value == 1 ? "Light" : "Dark";
+    }
+
     public void Reload()
     {
         Settings = App.Settings;
+        OnPropertyChanged(nameof(ThemeIndex));
+        OnPropertyChanged(nameof(LogLevelIndex));
     }
 
     public Mvvm.AsyncRelayCommand SaveCommand => new(_ =>
     {
         App.SaveSettings(Settings);
-        MessageBox.Show("Configuración guardada.",
+        // El tema se aplica al instante (los pinceles usan DynamicResource).
+        ThemeManager.Apply(Settings.Theme);
+        MessageBox.Show("Configuración guardada y tema aplicado.",
             "GameRoute Optimizer", MessageBoxButton.OK, MessageBoxImage.Information);
         return Task.CompletedTask;
     });

@@ -18,6 +18,8 @@ public partial class App : System.Windows.Application
         try
         {
             _services = new AppServices(Dispatcher);
+            // Aplica el tema guardado (oscuro/claro) antes de crear la ventana.
+            ThemeManager.Apply(_services.Settings.Theme);
             if (!smoke)
             {
                 // Recuperación tras un cierre inesperado: si la sesión anterior dejó un túnel

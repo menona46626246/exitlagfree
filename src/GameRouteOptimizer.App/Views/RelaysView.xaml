@@ -8,8 +8,8 @@
         </Grid.ColumnDefinitions>
 
         <!-- Lista -->
-        <Border Grid.Column="0" Background="{StaticResource PanelBrush}"
-                BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Padding="8">
+        <Border Grid.Column="0" Background="{DynamicResource PanelBrush}"
+                BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Padding="8">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
                     <Button Content="+ Nuevo" Style="{StaticResource PrimaryButton}" Command="{Binding NewRelayCommand}" />
@@ -25,13 +25,13 @@
                                     <Ellipse Width="8" Height="8" Margin="8,4,0,0">
                                         <Ellipse.Style>
                                             <Style TargetType="Ellipse">
-                                                <Setter Property="Fill" Value="#FF2ECC71" />
+                                                <Setter Property="Fill" Value="{DynamicResource GoodBrush}" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Enabled}" Value="False">
-                                                        <Setter Property="Fill" Value="#FF555555" />
+                                                        <Setter Property="Fill" Value="{DynamicResource NeutralBrush}" />
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Health.Healthy}" Value="False">
-                                                        <Setter Property="Fill" Value="#FFE74C3C" />
+                                                        <Setter Property="Fill" Value="{DynamicResource BadBrush}" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -117,11 +117,11 @@
                 </Grid>
 
                 <!-- Clave privada -->
-                <Border Background="{StaticResource PanelAltBrush}" BorderThickness="1"
-                        BorderBrush="{StaticResource BorderBrush2}" CornerRadius="6" Padding="10" Margin="0,14,0,0">
+                <Border Background="{DynamicResource PanelAltBrush}" BorderThickness="1"
+                        BorderBrush="{DynamicResource BorderBrush2}" CornerRadius="6" Padding="10" Margin="0,14,0,0">
                     <StackPanel>
                         <TextBlock Text="Clave privada (cliente WireGuard)" Style="{StaticResource Muted}" />
-                        <TextBlock Text="{Binding PrivateKeyStatus}" Foreground="#FFFFE0A0" Style="{StaticResource Muted}" Margin="0,4,0,6" />
+                        <TextBlock Text="{Binding PrivateKeyStatus}" Foreground="{DynamicResource WarnTextBrush}" Style="{StaticResource Muted}" Margin="0,4,0,6" />
                         <PasswordBox x:Name="PrivateKeyBox" FontFamily="Consolas" />
                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                             <Button Content="Guardar clave cifrada (DPAPI)" Style="{StaticResource PrimaryButton}" Click="OnSavePrivateKey" />

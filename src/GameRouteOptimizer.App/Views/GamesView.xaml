@@ -8,8 +8,8 @@
         </Grid.ColumnDefinitions>
 
         <!-- Lista -->
-        <Border Grid.Column="0" Background="{StaticResource PanelBrush}"
-                BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Padding="8">
+        <Border Grid.Column="0" Background="{DynamicResource PanelBrush}"
+                BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Padding="8">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
                     <Button Content="+ Nuevo" Style="{StaticResource PrimaryButton}" Command="{Binding NewGameCommand}" />
@@ -26,10 +26,10 @@
             <StackPanel Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="Editar juego" Style="{StaticResource SectionTitle}" Margin="0,0,14,0" />
-                    <TextBlock Text="ejecutándose" Foreground="{StaticResource GoodBrush}"
+                    <TextBlock Text="ejecutándose" Foreground="{DynamicResource GoodBrush}"
                                VerticalAlignment="Center"
                                Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}" />
-                    <TextBlock Text="no en ejecución" Foreground="{StaticResource MutedTextBrush}"
+                    <TextBlock Text="no en ejecución" Foreground="{DynamicResource MutedTextBrush}"
                                VerticalAlignment="Center"
                                Visibility="{Binding IsRunning, Converter={StaticResource InvertBoolToVisibility}}" />
                 </StackPanel>
@@ -88,8 +88,8 @@
                 <ItemsControl ItemsSource="{Binding Targets}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Background="{StaticResource PanelAltBrush}" BorderThickness="1"
-                                    BorderBrush="{StaticResource BorderBrush2}" CornerRadius="6" Padding="10" Margin="0,0,0,8">
+                            <Border Background="{DynamicResource PanelAltBrush}" BorderThickness="1"
+                                    BorderBrush="{DynamicResource BorderBrush2}" CornerRadius="6" Padding="10" Margin="0,0,0,8">
                                 <StackPanel>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -147,7 +147,7 @@
                     <Button Content="Eliminar juego" Style="{StaticResource DangerButton}" Command="{Binding DeleteCommand}" />
                 </StackPanel>
                 <TextBlock Text="Aviso: algunos juegos o plataformas prohíben VPN/proxies en sus términos. Revisa las condiciones del juego antes de usar un túnel."
-                           Style="{StaticResource Muted}" Foreground="#FFFFE0A0" />
+                           Style="{StaticResource Muted}" Foreground="{DynamicResource WarnTextBrush}" />
             </StackPanel>
         </ScrollViewer>
     </Grid>

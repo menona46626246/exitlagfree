@@ -8,7 +8,7 @@
         </Grid.ColumnDefinitions>
 
         <!-- Sesión actual / eventos -->
-        <Border Grid.Column="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+        <Border Grid.Column="0" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}"
                 BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,10,0">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
@@ -16,13 +16,13 @@
                     <TextBlock Text="{Binding SessionInfo}" FontWeight="SemiBold" />
                     <TextBlock Text="{Binding DirectText}" Style="{StaticResource Muted}" Margin="0,4,0,0" FontFamily="Consolas" />
                     <TextBlock Text="{Binding OptimizedText}" Style="{StaticResource Muted}" FontFamily="Consolas" />
-                    <TextBlock Text="{Binding ImprovementText}" Foreground="{StaticResource AccentBrush}" Margin="0,4,0,0" />
+                    <TextBlock Text="{Binding ImprovementText}" Foreground="{DynamicResource AccentBrush}" Margin="0,4,0,0" />
                     <StackPanel Orientation="Horizontal" Margin="0,10,0,4">
                         <Button Content="Exportar informe (Markdown)" Style="{StaticResource PrimaryButton}"
                                 Command="{Binding ExportSessionCommand}" />
                     </StackPanel>
                 </StackPanel>
-                <Border Background="#FF0D1014" CornerRadius="6">
+                <Border Background="{DynamicResource CodeBrush}" CornerRadius="6">
                     <ListBox ItemsSource="{Binding SessionEvents}" Background="Transparent"
                              BorderThickness="0" MaxHeight="460">
                         <ListBox.ItemTemplate>
@@ -30,7 +30,7 @@
                                 <StackPanel Margin="0,2">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="{Binding Utc, StringFormat={}{0:HH:mm:ss}}" FontFamily="Consolas"
-                                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,0,8,0" />
+                                                   Foreground="{DynamicResource MutedTextBrush}" Margin="0,0,8,0" />
                                         <TextBlock FontWeight="SemiBold">
                                             <Run Text="{Binding Category, Mode=OneWay}" />
                                         </TextBlock>
@@ -45,7 +45,7 @@
         </Border>
 
         <!-- Historial -->
-        <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+        <Border Grid.Column="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}"
                 BorderThickness="1" CornerRadius="8" Padding="10">
             <DockPanel>
                 <TextBlock DockPanel.Dock="Top" Text="Historial de sesiones" FontWeight="SemiBold" Margin="0,0,0,8" />

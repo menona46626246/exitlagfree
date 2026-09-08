@@ -25,11 +25,11 @@
             </Grid>
 
             <!-- Avisos -->
-            <Border Background="#332A1E" BorderBrush="#FF6B4F15" BorderThickness="1" CornerRadius="6"
+            <Border Background="{DynamicResource WarnBannerBgBrush}" BorderBrush="{DynamicResource WarnBannerBorderBrush}" BorderThickness="1" CornerRadius="6"
                     Padding="10" Margin="0,10,0,0"
                     Visibility="{Binding GlobalModeWarning, Converter={StaticResource BoolToVisibility}}">
                 <TextBlock Text="⚠ El perfil usa el modo TÚNEL GLOBAL: todo el tráfico del equipo pasará por el relay mientras esté activo. Asegúrate de que el proveedor del relay lo permite."
-                           Foreground="#FFFFE0A0" />
+                           Foreground="{DynamicResource WarnTextBrush}" />
             </Border>
 
             <!-- Métricas -->
@@ -45,26 +45,26 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="0,0,6,6" Padding="14,10">
+                <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="0,0,6,6" Padding="14,10">
                     <StackPanel>
                         <TextBlock Text="PING DIRECTO" Style="{StaticResource Muted}" />
-                        <TextBlock Text="{Binding DirectLatency}" FontSize="26" FontWeight="Bold" Foreground="{StaticResource GoodBrush}" />
+                        <TextBlock Text="{Binding DirectLatency}" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource GoodBrush}" />
                         <TextBlock Text="{Binding DirectJitter, StringFormat=Jitter: {0}}" Style="{StaticResource Muted}" />
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,6,6" Padding="14,10">
+                <Border Grid.Column="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,6,6" Padding="14,10">
                     <StackPanel>
                         <TextBlock Text="PÉRDIDA DIRECTA" Style="{StaticResource Muted}" />
                         <TextBlock Text="{Binding DirectLoss}" FontSize="26" FontWeight="Bold" />
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="2" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,6,6" Padding="14,10">
+                <Border Grid.Column="2" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,6,6" Padding="14,10">
                     <StackPanel>
                         <TextBlock Text="PING VÍA TÚNEL" Style="{StaticResource Muted}" />
-                        <TextBlock Text="{Binding OptimizedLatency}" FontSize="26" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" />
+                        <TextBlock Text="{Binding OptimizedLatency}" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" />
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="3" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,0,6" Padding="14,10">
+                <Border Grid.Column="3" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,0,6" Padding="14,10">
                     <StackPanel>
                         <TextBlock Text="PÉRDIDA VÍA TÚNEL" Style="{StaticResource Muted}" />
                         <TextBlock Text="{Binding OptimizedLoss}" FontSize="26" FontWeight="Bold" />
@@ -72,8 +72,8 @@
                 </Border>
 
                 <!-- Recomendación -->
-                <Border Grid.Row="1" Grid.ColumnSpan="4" Background="{StaticResource PanelBrush}"
-                        BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,6" Padding="14,10">
+                <Border Grid.Row="1" Grid.ColumnSpan="4" Background="{DynamicResource PanelBrush}"
+                        BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,6" Padding="14,10">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="💡 " FontSize="18" />
                         <StackPanel>
@@ -91,18 +91,18 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="0,0,6,0" Padding="10">
+                <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="0,0,6,0" Padding="10">
                     <StackPanel>
                         <TextBlock Text="Latencia en vivo (ms)" FontWeight="SemiBold" Margin="0,0,0,6" />
                         <ctrl:LineChartControl Height="180" Values="{Binding LatencySamples}"
-                                               Stroke="#FF2ECC71" UnitLabel="ms" />
+                                               Stroke="{DynamicResource GoodBrush}" UnitLabel="ms" />
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,0,0" Padding="10">
+                <Border Grid.Column="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,0,0" Padding="10">
                     <StackPanel>
                         <TextBlock Text="Pérdida en vivo (%)" FontWeight="SemiBold" Margin="0,0,0,6" />
                         <ctrl:LineChartControl Height="180" Values="{Binding LossSamples}"
-                                               Stroke="#FFF1C40F" UnitLabel="%" />
+                                               Stroke="{DynamicResource WarnBrush}" UnitLabel="%" />
                     </StackPanel>
                 </Border>
             </Grid>

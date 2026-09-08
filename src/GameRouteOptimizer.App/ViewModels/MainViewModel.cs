@@ -38,6 +38,8 @@ public sealed class MainViewModel : ObservableObjectBase
         // cuadro de diálogo para errores).
         _app.Notifications.NotificationAdded += (_, notification) =>
             _app.RunOnUi(() => OnNotification(notification));
+        // Pinceles del indicador de estado según el tema activo.
+        ThemeManager.ThemeChanged += (_, _) => _app.RunOnUi(RefreshStatusFromState);
 
         _content = Dashboard.View;
         RefreshStatusFromState();
@@ -149,13 +151,13 @@ public sealed class MainViewModel : ObservableObjectBase
     {
         var state = _app.Orchestrator.State;
         StateLabel = ProgramStateMachine.ToSpanish(state);
-        StateBrush = state switch
+        StateBrush = ThemeManager.Brush(state switch
         {
-            ProgramState.Active or ProgramState.Monitoring => GoodBrush,
-            ProgramState.Degraded or ProgramState.WaitingUser => WarnBrush,
-            ProgramState.Error => BadBrush,
-            _ => MutedBrush,
-        };
+            ProgramState.Active or ProgramState.Monitoring => "GoodBrush",
+            ProgramState.Degraded or ProgramState.WaitingUser => "WarnBrush",
+            ProgramState.Error => "BadBrush",
+            _ => "MutedTextBrush",
+        }, Color.FromRgb(0x8F, 0xA0, 0xB0));
         var profile = _app.Orchestrator.CurrentProfile;
         CurrentGameLabel = profile?.Name ?? "—";
         StateDetail = _app.Orchestrator.ActiveTunnel is { } tunnel
@@ -164,11 +166,6 @@ public sealed class MainViewModel : ObservableObjectBase
                 ? rec.ExplanationEs
                 : "Listo.";
     }
-
-    private static readonly Brush GoodBrush = new SolidColorBrush(Color.FromRgb(0x2E, 0xCC, 0x71));
-    private static readonly Brush WarnBrush = new SolidColorBrush(Color.FromRgb(0xF1, 0xC4, 0x0F));
-    private static readonly Brush BadBrush = new SolidColorBrush(Color.FromRgb(0xE7, 0x4C, 0x3C));
-    private static readonly Brush MutedBrush = new SolidColorBrush(Color.FromRgb(0x8F, 0xA0, 0xB0));
 }
 
 /// <summary>Base para los ViewModels de sección con acceso a servicios y a su vista.</summary>

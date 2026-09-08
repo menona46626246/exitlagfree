@@ -81,9 +81,6 @@ public partial class LineChartControl : UserControl
         set => SetValue(UnitLabelProperty, value);
     }
 
-    private static void OnValuesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
-        ((LineChartControl)d).ScheduleRedraw();
-
     private static void OnVisualChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) =>
         ((LineChartControl)d).Redraw();
 
