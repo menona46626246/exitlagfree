@@ -4,11 +4,12 @@
              xmlns:ctrl="clr-namespace:GameRouteOptimizer.App.Controls">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="4">
+
+            <!-- Acciones principales -->
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
@@ -17,12 +18,36 @@
                 <ComboBox Grid.Column="1" ItemsSource="{Binding Games}" SelectedItem="{Binding SelectedProfile}"
                           DisplayMemberPath="Name" MinWidth="240" Margin="0,0,12,0" />
                 <Button Grid.Column="2" Content="Optimizar" Style="{StaticResource PrimaryButton}"
-                        Command="{Binding OptimizeCommand}" />
-                <Button Grid.Column="3" Content="Detener" Command="{Binding StopCommand}" />
-                <Button Grid.Column="4" Content="Usar relay recomendado" Style="{StaticResource PrimaryButton}"
-                        Visibility="{Binding CanConfirmRelay, Converter={StaticResource BoolToVisibility}}"
-                        Command="{Binding ConfirmRelayCommand}" />
+                        Command="{Binding OptimizeCommand}" ToolTip="Mide tu ruta y la de tus relays, y conecta el túnel si conviene" />
+                <Button Grid.Column="3" Content="Detener" Command="{Binding StopCommand}"
+                        ToolTip="Detiene el túnel y restaura la red" />
             </Grid>
+
+            <!-- Estado actual -->
+            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                    BorderThickness="1" CornerRadius="8" Padding="12,8" Margin="0,10,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding StatusText}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding LastUpdateText}" Style="{StaticResource Muted}"
+                               Margin="14,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+            </Border>
+
+            <!-- Esperando confirmación del relay recomendado -->
+            <Border BorderBrush="{StaticResource AccentBrush}" BorderThickness="1" CornerRadius="8"
+                    Padding="12" Margin="0,10,0,0" Background="{StaticResource PanelBrush}"
+                    Visibility="{Binding CanConfirmRelay, Converter={StaticResource BoolToVisibility}}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="Usar relay recomendado" Style="{StaticResource PrimaryButton}"
+                                Command="{Binding ConfirmRelayCommand}" />
+                        <Button Content="Mantener ruta directa" Command="{Binding CancelSelectionCommand}" />
+                    </StackPanel>
+                    <TextBlock VerticalAlignment="Center" Margin="0,0,12,0" TextWrapping="Wrap">
+                        <Run Text="💡 " /><Run Text="Un relay medido parece claramente mejor. " FontWeight="SemiBold" /><Run Text="{Binding RecommendationText, Mode=OneWay}" />
+                    </TextBlock>
+                </DockPanel>
+            </Border>
 
             <!-- Avisos -->
             <Border Background="{DynamicResource WarnBannerBgBrush}" BorderBrush="{DynamicResource WarnBannerBorderBrush}" BorderThickness="1" CornerRadius="6"
@@ -45,35 +70,38 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
-                <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="0,0,6,6" Padding="14,10">
+                <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="0,0,6,6" Padding="14,10">
                     <StackPanel>
                         <TextBlock Text="PING DIRECTO" Style="{StaticResource Muted}" />
-                        <TextBlock Text="{Binding DirectLatency}" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource GoodBrush}" />
+                        <TextBlock Text="{Binding DirectLatency}" FontSize="26" FontWeight="Bold" Foreground="{StaticResource GoodBrush}" />
                         <TextBlock Text="{Binding DirectJitter, StringFormat=Jitter: {0}}" Style="{StaticResource Muted}" />
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,6,6" Padding="14,10">
+                <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,6,6" Padding="14,10">
                     <StackPanel>
                         <TextBlock Text="PÉRDIDA DIRECTA" Style="{StaticResource Muted}" />
                         <TextBlock Text="{Binding DirectLoss}" FontSize="26" FontWeight="Bold" />
+                        <TextBlock Text="paquetes perdidos en la última pasada" Style="{StaticResource Muted}" />
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="2" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,6,6" Padding="14,10">
+                <Border Grid.Column="2" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,6,6" Padding="14,10">
                     <StackPanel>
                         <TextBlock Text="PING VÍA TÚNEL" Style="{StaticResource Muted}" />
-                        <TextBlock Text="{Binding OptimizedLatency}" FontSize="26" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" />
+                        <TextBlock Text="{Binding OptimizedLatency}" FontSize="26" FontWeight="Bold" Foreground="{StaticResource AccentBrush}" />
+                        <TextBlock Text="{Binding OptimizedJitter, StringFormat=Jitter: {0}}" Style="{StaticResource Muted}" />
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="3" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,0,6" Padding="14,10">
+                <Border Grid.Column="3" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,0,6" Padding="14,10">
                     <StackPanel>
                         <TextBlock Text="PÉRDIDA VÍA TÚNEL" Style="{StaticResource Muted}" />
                         <TextBlock Text="{Binding OptimizedLoss}" FontSize="26" FontWeight="Bold" />
+                        <TextBlock Text="paquetes perdidos en la última pasada" Style="{StaticResource Muted}" />
                     </StackPanel>
                 </Border>
 
                 <!-- Recomendación -->
-                <Border Grid.Row="1" Grid.ColumnSpan="4" Background="{DynamicResource PanelBrush}"
-                        BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,6" Padding="14,10">
+                <Border Grid.Row="1" Grid.ColumnSpan="4" Background="{StaticResource PanelBrush}"
+                        BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="0,0,0,6" Padding="14,10">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="💡 " FontSize="18" />
                         <StackPanel>
@@ -91,21 +119,59 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <Border Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="0,0,6,0" Padding="10">
+                <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="0,0,6,0" Padding="10">
                     <StackPanel>
                         <TextBlock Text="Latencia en vivo (ms)" FontWeight="SemiBold" Margin="0,0,0,6" />
-                        <ctrl:LineChartControl Height="180" Values="{Binding LatencySamples}"
+                        <TextBlock Style="{StaticResource Muted}" Margin="0,-4,0,6"
+                                   Text="Ruta en uso: directa o túnel según el estado actual." />
+                        <ctrl:LineChartControl Height="150" Values="{Binding LatencySamples}"
                                                Stroke="{DynamicResource GoodBrush}" UnitLabel="ms" />
                     </StackPanel>
                 </Border>
-                <Border Grid.Column="1" Background="{DynamicResource PanelBrush}" BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,0,0" Padding="10">
+                <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Margin="6,0,0,0" Padding="10">
                     <StackPanel>
                         <TextBlock Text="Pérdida en vivo (%)" FontWeight="SemiBold" Margin="0,0,0,6" />
-                        <ctrl:LineChartControl Height="180" Values="{Binding LossSamples}"
+                        <TextBlock Style="{StaticResource Muted}" Margin="0,-4,0,6"
+                                   Text="Porcentaje de pruebas sin respuesta por pasada." />
+                        <ctrl:LineChartControl Height="150" Values="{Binding LossSamples}"
                                                Stroke="{DynamicResource WarnBrush}" UnitLabel="%" />
                     </StackPanel>
                 </Border>
             </Grid>
+
+            <!-- Notificaciones recientes -->
+            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                    BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,10,0,2">
+                <StackPanel>
+                    <TextBlock Text="Notificaciones recientes" FontWeight="SemiBold" Margin="0,0,0,2" />
+                    <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,6"
+                               Text="Aquí verás los avisos importantes: optimizado, túnel caído, red restaurada, permisos de administrador y errores." />
+                    <ItemsControl ItemsSource="{Binding Notifications}" MaxHeight="240">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,3">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Icon}" FontSize="14" Margin="0,0,8,0" />
+                                    <StackPanel Grid.Column="1">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Time}" Foreground="{StaticResource MutedTextBrush}"
+                                                       FontFamily="Consolas" FontSize="11" Margin="0,0,10,0" />
+                                            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Message}" Style="{StaticResource Muted}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Style="{StaticResource Muted}" Margin="4,8,0,0"
+                       Text="GameRoute Optimizer mide con honestidad: si la ruta directa ya es la mejor, lo dirá y no creará un túnel." />
         </StackPanel>
     </ScrollViewer>
 </UserControl>
