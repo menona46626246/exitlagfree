@@ -171,7 +171,7 @@
             </Border>
 
             <TextBlock Style="{StaticResource Muted}" Margin="4,8,0,0"
-                       Text="GameRoute Optimizer mide con honestidad: si la ruta directa ya es la mejor, lo dirá y no creará un túnel." />
+                       Text="GameRoute Optimizer mide con honestidad: si la ruta directa ya es la mejor, lo dirá y no creará un túnel. Respeta los términos de servicio de cada juego: la herramienta solo busca una mejor ruta, no evita baneos ni geobloqueos." />
         </StackPanel>
     </ScrollViewer>
 </UserControl>

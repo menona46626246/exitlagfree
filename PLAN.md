@@ -28,7 +28,7 @@ Es una herramienta **ética, local y transparente**:
 |---|---|---|
 | Plataforma | Windows 10/11 x64 | App WPF. Núcleo multiplataforma (compila y corre en Linux también). |
 | Lenguaje/plataforma | C# / .NET 8 | LTS. `global.json` con roll-forward tolerante. |
-| UI | WPF + XAML, MVVM, dark theme | Sin toolkit externo: MVVM mínimo propio (`ObservableObject`, `RelayCommand`) para reducir dependencias y riesgos de versión. |
+| UI | WPF + XAML, MVVM, tema oscuro/claro | Temas mediante diccionarios de recursos (`Themes/Dark.xaml` y `Light.xaml`) intercambiables en caliente con `DynamicResource`; sin toolkit externo: MVVM mínimo propio (`ObservableObject`, `RelayCommand`, `AsyncRelayCommand`) para reducir dependencias y riesgos de versión. |
 | Gráficos | Control de gráfico propio (WPF `Canvas`/`Polyline`) | Se descartó LiveCharts2/ScottPlot en v1 para no depender de paquetes externos de UI; ver ROADMAP para su integración futura. |
 | BD local | SQLite (`Microsoft.Data.Sqlite`) | Configuración, juegos, relays, sesiones, historial. |
 | Túnel | WireGuard (estándar) | Dos vías reales: (a) herramientas oficiales `wireguard.exe`/`wg.exe` si WireGuard está instalado; (b) modo "manual" que genera la configuración lista para importar. Proveedor simulado **solo en tests**. |
@@ -147,7 +147,8 @@ Decisiones menores autónomas (regla 2 del encargo):
 | 7 | Monitoreo: sesión, eventos, historial, gráficos | SessionRecorder + UI de sesión + exportar | ✅ |
 | 8 | Auto-optimización: histéresis, cooldown, failover | Tests de AutoOptimizer | ✅ |
 | 9 | Seguridad/UX: advertencias, botón de emergencia, logs | UI en español con estados y advertencias | ✅ |
-| 10 | Tests y documentación final | Suite xUnit verde en CI en Linux y Windows (25 tests: almacenamiento, juegos/relays, parser .conf, métricas/scoring, rutas, estados, probes con transporte simulado, DNS/cancelación, SQLite corrupta); docs completas | ✅ |
+| 10 | Tests y documentación final | Suite xUnit verde en CI en Linux y Windows (33 tests: almacenamiento, juegos/relays, parser .conf, métricas/scoring, rutas, estados, probes con transporte simulado, DNS/cancelación, SQLite corrupta, auto-switch/cooldown/estabilidad, failback y session recorder); docs completas | ✅ |
+| 11 | Pulido de experiencia (UX) | Panel con estado, métricas y gráficos en vivo; diagnóstico con tabla directa vs relays; relays con prueba rápida y carga; sesión con eventos coloreados y exportación; notificaciones claras; tema oscuro/claro; gráficos eficientes | ✅ (CI verde) |
 
 Leyenda: ✅ hecho · 🔄 en curso · ⏳ pendiente · ⛔ bloqueado (detalle en STATE.md).
 
