@@ -1,0 +1,80 @@
+<UserControl x:Class="GameRouteOptimizer.App.Views.SessionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="320" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Sesión actual / eventos -->
+        <Border Grid.Column="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,10,0">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8">
+                    <TextBlock Text="Sesión en vivo" Style="{StaticResource SectionTitle}" />
+                    <TextBlock Text="{Binding SessionInfo}" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding DirectText}" Style="{StaticResource Muted}" Margin="0,4,0,0" FontFamily="Consolas" />
+                    <TextBlock Text="{Binding OptimizedText}" Style="{StaticResource Muted}" FontFamily="Consolas" />
+                    <TextBlock Text="{Binding ImprovementText}" Foreground="{StaticResource AccentBrush}" Margin="0,4,0,0" />
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,4">
+                        <Button Content="Exportar informe (Markdown)" Style="{StaticResource PrimaryButton}"
+                                Command="{Binding ExportSessionCommand}" />
+                    </StackPanel>
+                </StackPanel>
+                <Border Background="#FF0D1014" CornerRadius="6">
+                    <ListBox ItemsSource="{Binding SessionEvents}" Background="Transparent"
+                             BorderThickness="0" MaxHeight="460">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,2">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Utc, StringFormat={}{0:HH:mm:ss}}" FontFamily="Consolas"
+                                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,0,8,0" />
+                                        <TextBlock FontWeight="SemiBold">
+                                            <Run Text="{Binding Category, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Message}" Style="{StaticResource Muted}" TextWrapping="Wrap" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Border>
+            </DockPanel>
+        </Border>
+
+        <!-- Historial -->
+        <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                BorderThickness="1" CornerRadius="8" Padding="10">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Historial de sesiones" FontWeight="SemiBold" Margin="0,0,0,8" />
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,8,0,0">
+                    <Button Content="Ver sesión" Command="{Binding LoadSelectedSessionCommand}" />
+                </StackPanel>
+                <ListBox ItemsSource="{Binding History}" SelectedItem="{Binding SelectedSession}" BorderThickness="0"
+                         Background="Transparent">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,2">
+                                <TextBlock FontWeight="SemiBold">
+                                    <Run Text="{Binding GameProfileName, Mode=OneWay}" /><Run Text="  " />
+                                    <Run Text="{Binding TargetDisplay, Mode=OneWay}" />
+                                </TextBlock>
+                                <TextBlock Style="{StaticResource Muted}">
+                                    <Run Text="{Binding StartedUtc, StringFormat={}{0:yyyy-MM-dd HH:mm}}" />
+                                    <Run Text=" · " /><Run Text="{Binding EndedReason, Mode=OneWay}" />
+                                </TextBlock>
+                                <TextBlock Style="{StaticResource Muted}">
+                                    <Run Text="relay: " /><Run Text="{Binding RelayName, Mode=OneWay}" />
+                                    <Run Text=" · mejora: " />
+                                    <Run Text="{Binding EstimatedImprovementMs, StringFormat={}{0:F1} ms}" />
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

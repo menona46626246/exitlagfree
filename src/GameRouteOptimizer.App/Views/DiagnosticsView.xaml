@@ -1,0 +1,95 @@
+<UserControl x:Class="GameRouteOptimizer.App.Views.DiagnosticsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="2">
+            <TextBlock Text="Diagnóstico de red (sin necesidad de túnel)" Style="{StaticResource SectionTitle}" />
+
+            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                    BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBlock Text="1) Perfil de juego (opcional): mide ruta directa, relays del perfil y traceroute."
+                               Style="{StaticResource Muted}" />
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <ComboBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}"
+                                  DisplayMemberPath="Name" MinWidth="220" Margin="0,0,8,0" />
+                        <CheckBox Content="Modo profundo (más muestras)" IsChecked="{Binding Deep}" VerticalAlignment="Center" />
+                        <Button Content="Diagnosticar juego" Style="{StaticResource PrimaryButton}"
+                                Command="{Binding RunProfileDiagnosticsCommand}" />
+                    </StackPanel>
+
+                    <TextBlock Text="2) Prueba libre hacia un host autorizado (dominio o IP pública)"
+                               Style="{StaticResource Muted}" Margin="0,12,0,0" />
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <TextBox Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}" Width="240"
+                                 Margin="0,0,8,0" ToolTip="Dominio o IP" />
+                        <TextBox Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" Width="70"
+                                 Margin="0,0,8,0" ToolTip="Puerto TCP/UDP" />
+                        <Button Content="Probar ping/latencia" Command="{Binding RunFreeProbeCommand}" Margin="0,0,8,0" />
+                        <Button Content="Traceroute" Command="{Binding RunTracerouteCommand}" />
+                    </StackPanel>
+                    <TextBlock Text="ICMP se usa cuando está permitido; si el servidor lo bloquea, se indica y se intenta con TCP connect. El programa solo sondea los hosts que escribes tú."
+                               Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                </StackPanel>
+            </Border>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                        BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,0,6,0">
+                    <StackPanel>
+                        <TextBlock Text="Resultados y métricas" FontWeight="SemiBold" Margin="0,0,0,6" />
+                        <Border Background="#FF0D1014" CornerRadius="6" MinHeight="240">
+                            <ScrollViewer MaxHeight="420" VerticalScrollBarVisibility="Auto">
+                                <TextBlock Text="{Binding Output}" FontFamily="Consolas" FontSize="12"
+                                           Margin="8" TextWrapping="Wrap" />
+                            </ScrollViewer>
+                        </Border>
+                        <TextBlock Text="{Binding IsBusy, StringFormat=Estado: ocupado → {0}}" Style="{StaticResource Muted}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                        BorderThickness="1" CornerRadius="8" Padding="10">
+                    <StackPanel>
+                        <TextBlock Text="Saltos del traceroute" FontWeight="SemiBold" Margin="0,0,0,6" />
+                        <Border Background="#FF0D1014" CornerRadius="6" MinHeight="240" MaxHeight="420">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding TraceHops}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Margin="8,3">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="46" />
+                                                    <ColumnDefinition Width="150" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="{Binding Ttl}" FontFamily="Consolas" />
+                                                <TextBlock Grid.Column="1" Text="{Binding Address}" FontFamily="Consolas" />
+                                                <TextBlock Grid.Column="2" FontFamily="Consolas">
+                                                    <Run Text="{Binding Rtt1, Mode=OneWay}" /><Run Text="  " /><Run Text="{Binding Rtt2, Mode=OneWay}" />
+                                                </TextBlock>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            <Border Grid.Row="2" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                    BorderThickness="1" CornerRadius="8" Padding="10" Margin="0,10,0,0">
+                <StackPanel>
+                    <TextBlock Text="Recomendación (directa vs relays)" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    <TextBlock Text="{Binding Recommendation}" FontFamily="Consolas" FontSize="12" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,145 @@
+<UserControl x:Class="GameRouteOptimizer.App.Views.RelaysView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Lista -->
+        <Border Grid.Column="0" Background="{StaticResource PanelBrush}"
+                BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Padding="8">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                    <Button Content="+ Nuevo" Style="{StaticResource PrimaryButton}" Command="{Binding NewRelayCommand}" />
+                    <Button Content="Importar .conf" Command="{Binding ImportConfCommand}" />
+                    <Button Content="JSON" Command="{Binding ImportJsonCommand}" />
+                </StackPanel>
+                <ListBox ItemsSource="{Binding Relays}" SelectedItem="{Binding SelectedRelay}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="2">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                                    <Ellipse Width="8" Height="8" Margin="8,4,0,0">
+                                        <Ellipse.Style>
+                                            <Style TargetType="Ellipse">
+                                                <Setter Property="Fill" Value="#FF2ECC71" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Enabled}" Value="False">
+                                                        <Setter Property="Fill" Value="#FF555555" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Health.Healthy}" Value="False">
+                                                        <Setter Property="Fill" Value="#FFE74C3C" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Ellipse.Style>
+                                    </Ellipse>
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource Muted}">
+                                    <Run Text="{Binding Endpoint, Mode=OneWay}" /><Run Text=" · " /><Run Text="{Binding Country, Mode=OneWay}" /><Run Text=" " /><Run Text="{Binding City, Mode=OneWay}" />
+                                </TextBlock>
+                                <TextBlock Style="{StaticResource Muted}">
+                                    <Run Text="latencia: " /><Run Text="{Binding Health.AvgLatencyMs, Converter={StaticResource MsDisplay}}" />
+                                </TextBlock>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <!-- Editor -->
+        <ScrollViewer Grid.Column="1" Margin="12,0,0,0" VerticalScrollBarVisibility="Auto">
+            <StackPanel Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Editar relay" Style="{StaticResource SectionTitle}" Margin="0,0,14,0" />
+                    <Button Content="Exportar JSON (sin claves)" Command="{Binding ExportJsonCommand}" />
+                </StackPanel>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,8,0">
+                        <TextBlock Text="Nombre" Style="{StaticResource Muted}" />
+                        <TextBox Text="{Binding SelectedRelay.Name, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="Endpoint del relay (host)" Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                        <TextBox Text="{Binding SelectedRelay.EndpointHost, UpdateSourceTrigger=PropertyChanged}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <StackPanel Width="140" Margin="0,0,8,0">
+                                <TextBlock Text="Puerto" Style="{StaticResource Muted}" />
+                                <TextBox Text="{Binding SelectedRelay.EndpointPort, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="País / Ciudad" Style="{StaticResource Muted}" />
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBox Text="{Binding SelectedRelay.Country, UpdateSourceTrigger=PropertyChanged}" Width="90" Margin="0,0,6,0" />
+                                    <TextBox Text="{Binding SelectedRelay.City, UpdateSourceTrigger=PropertyChanged}" Width="120" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                        <TextBlock Text="Clave pública del relay" Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                        <TextBox Text="{Binding SelectedRelay.PublicKey, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
+                        <TextBlock Text="AllowedIPs (p. ej. 0.0.0.0/0, ::/0)" Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                        <TextBox Text="{Binding SelectedRelay.AllowedIps, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="0" Grid.Column="1" Margin="8,0,0,0">
+                        <TextBlock Text="Dirección local del túnel (Address)" Style="{StaticResource Muted}" />
+                        <TextBox Text="{Binding SelectedRelay.TunnelAddressesText, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="DNS interno del túnel (opcional)" Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                        <TextBox Text="{Binding SelectedRelay.DnsInternal, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="Proveedor / costo (informativo)" Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                        <TextBox Text="{Binding SelectedRelay.Provider, UpdateSourceTrigger=PropertyChanged}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <StackPanel Width="140" Margin="0,0,8,0">
+                                <TextBlock Text="Prioridad (menor = mejor)" Style="{StaticResource Muted}" />
+                                <TextBox Text="{Binding SelectedRelay.Priority, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="Carga estimada 0-100 (opcional)" Style="{StaticResource Muted}" />
+                                <TextBox Text="{Binding SelectedRelay.EstimatedLoadPercent, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </StackPanel>
+                        <CheckBox Content="Relay activado" IsChecked="{Binding SelectedRelay.Enabled}" Margin="0,12,0,0" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- Clave privada -->
+                <Border Background="{StaticResource PanelAltBrush}" BorderThickness="1"
+                        BorderBrush="{StaticResource BorderBrush2}" CornerRadius="6" Padding="10" Margin="0,14,0,0">
+                    <StackPanel>
+                        <TextBlock Text="Clave privada (cliente WireGuard)" Style="{StaticResource Muted}" />
+                        <TextBlock Text="{Binding PrivateKeyStatus}" Foreground="#FFFFE0A0" Style="{StaticResource Muted}" Margin="0,4,0,6" />
+                        <PasswordBox x:Name="PrivateKeyBox" FontFamily="Consolas" />
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <Button Content="Guardar clave cifrada (DPAPI)" Style="{StaticResource PrimaryButton}" Click="OnSavePrivateKey" />
+                            <Button Content="Generar par nuevo (sin guardar)" Click="OnGeneratePrivateKey" />
+                            <Button Content="Probar relay (ping)" Command="{Binding MeasureCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding HealthText}" Style="{StaticResource Muted}" Margin="2,10,0,0" />
+
+                <StackPanel Orientation="Horizontal" Margin="0,16,0,4">
+                    <Button Content="Guardar relay" Style="{StaticResource PrimaryButton}" Command="{Binding SaveRelayCommand}" />
+                    <Button Content="Eliminar relay" Style="{StaticResource DangerButton}" Command="{Binding DeleteRelayCommand}" />
+                </StackPanel>
+                <TextBlock Text="Los relays son tuyos: GameRoute Optimizer no usa ni aporta relays de terceros. La clave privada se guarda cifrada con DPAPI de Windows y nunca se exporta."
+                           Style="{StaticResource Muted}" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

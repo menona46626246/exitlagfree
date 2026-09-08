@@ -1,0 +1,9 @@
+<UserControl x:Class="GameRouteOptimizer.App.Controls.LineChartControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid x:Name="Root">
+        <Border Background="#FF141A21" BorderBrush="#FF2C3644" BorderThickness="1" CornerRadius="6">
+            <Canvas x:Name="Plot" ClipToBounds="True" Background="Transparent" />
+        </Border>
+    </Grid>
+</UserControl>

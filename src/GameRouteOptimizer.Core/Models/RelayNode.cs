@@ -32,6 +32,16 @@ public sealed class RelayNode
     /// <summary>Direcciones de interfaz local sugeridas (Address = …), p. ej. "10.66.0.2/32".</summary>
     public List<string> TunnelAddresses { get; set; } = new();
 
+    /// <summary>Vista texto de TunnelAddresses para la UI (coma separada).</summary>
+    [JsonIgnore]
+    public string TunnelAddressesText
+    {
+        get => string.Join(", ", TunnelAddresses);
+        set => TunnelAddresses = value.Split(',',
+                StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToList();
+    }
+
     /// <summary>DNS interno opcional del túnel.</summary>
     public string? DnsInternal { get; set; }
 

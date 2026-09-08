@@ -1,0 +1,154 @@
+<UserControl x:Class="GameRouteOptimizer.App.Views.GamesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Lista -->
+        <Border Grid.Column="0" Background="{StaticResource PanelBrush}"
+                BorderBrush="{StaticResource BorderBrush2}" BorderThickness="1" CornerRadius="8" Padding="8">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,8">
+                    <Button Content="+ Nuevo" Style="{StaticResource PrimaryButton}" Command="{Binding NewGameCommand}" />
+                    <Button Content="Importar" Command="{Binding ImportCommand}" />
+                    <Button Content="Exportar" Command="{Binding ExportCommand}" />
+                </StackPanel>
+                <ListBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}"
+                         DisplayMemberPath="Name" />
+            </DockPanel>
+        </Border>
+
+        <!-- Editor -->
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Margin="12,0,0,0">
+            <StackPanel Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Editar juego" Style="{StaticResource SectionTitle}" Margin="0,0,14,0" />
+                    <TextBlock Text="ejecutándose" Foreground="{StaticResource GoodBrush}"
+                               VerticalAlignment="Center"
+                               Visibility="{Binding IsRunning, Converter={StaticResource BoolToVisibility}}" />
+                    <TextBlock Text="no en ejecución" Foreground="{StaticResource MutedTextBrush}"
+                               VerticalAlignment="Center"
+                               Visibility="{Binding IsRunning, Converter={StaticResource InvertBoolToVisibility}}" />
+                </StackPanel>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,8,0">
+                        <TextBlock Text="Nombre del juego" Style="{StaticResource Muted}" />
+                        <TextBox Text="{Binding SelectedProfile.Name, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="Ruta del ejecutable (opcional)" Style="{StaticResource Muted}" Margin="0,10,0,0" />
+                        <TextBox Text="{Binding SelectedProfile.ExecutablePath, UpdateSourceTrigger=PropertyChanged}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Button Content="Detectar instalado" Command="{Binding DetectCommand}" />
+                            <Button Content="Iniciar juego" Command="{Binding LaunchGameCommand}" />
+                            <Button Content="Comprobar proceso" Command="{Binding RefreshProcessCommand}" />
+                        </StackPanel>
+                        <TextBlock Text="Argumentos (opcional)" Style="{StaticResource Muted}" Margin="0,10,0,0" />
+                        <TextBox Text="{Binding SelectedProfile.Arguments, UpdateSourceTrigger=PropertyChanged}" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="0" Grid.Column="1" Margin="8,0,0,0">
+                        <TextBlock Text="Modo de ruta" Style="{StaticResource Muted}" />
+                        <ComboBox SelectedIndex="{Binding SelectedProfile.RouteMode, Converter={StaticResource RouteModeIndex}}"
+                                  VerticalAlignment="Center">
+                            <ComboBoxItem Content="Ruta directa (sin túnel)" />
+                            <ComboBoxItem Content="Túnel global (todo el tráfico)" />
+                            <ComboBoxItem Content="Túnel solo destinos del juego" />
+                        </ComboBox>
+                        <TextBlock Text="Relay preferido" Style="{StaticResource Muted}" Margin="0,10,0,0" />
+                        <ComboBox ItemsSource="{Binding Relays}" DisplayMemberPath="DisplayName"
+                                  SelectedValue="{Binding SelectedProfile.PreferredRelayId}"
+                                  SelectedValuePath="Id" />
+                        <CheckBox Content="Optimizar automáticamente al iniciar el juego"
+                                  IsChecked="{Binding SelectedProfile.AutoStartOptimization}" Margin="0,12,0,0" />
+                        <CheckBox Content="Detener optimización al cerrar el juego"
+                                  IsChecked="{Binding SelectedProfile.AutoStopOnExit}" Margin="0,6,0,0" />
+                        <TextBlock Text="Notas" Style="{StaticResource Muted}" Margin="0,10,0,0" />
+                        <TextBox Text="{Binding SelectedProfile.Notes, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True" Height="64" />
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Text="Servidores objetivo (autorizados por ti)" Style="{StaticResource SectionTitle}" Margin="0,16,0,6" />
+                <TextBlock Text="El programa solo sondea estos destinos. Añade el dominio o la IP pública del servidor del juego (p. ej. el de tu región)."
+                           Style="{StaticResource Muted}" Margin="0,0,0,8" />
+
+                <ItemsControl ItemsSource="{Binding Targets}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{StaticResource PanelAltBrush}" BorderThickness="1"
+                                    BorderBrush="{StaticResource BorderBrush2}" CornerRadius="6" Padding="10" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Margin="0,0,8,0">
+                                            <TextBlock Text="Dominio" Style="{StaticResource Muted}" />
+                                            <TextBox Text="{Binding Domain, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                            <TextBlock Text="IP fija (alternativa)" Style="{StaticResource Muted}" />
+                                            <TextBox Text="{Binding IpAddress, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                        <Button Grid.Column="2" Content="Quitar" Margin="8,18,0,0"
+                                                VerticalAlignment="Top"
+                                                Command="{Binding DataContext.RemoveTargetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" />
+                                    </Grid>
+                                    <Grid Margin="0,8,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Margin="0,0,8,0">
+                                            <TextBlock Text="Puertos (TCP/UDP, coma)" Style="{StaticResource Muted}" />
+                                            <TextBox Text="{Binding PortsText, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Margin="8,0">
+                                            <TextBlock Text="Región (para historial)" Style="{StaticResource Muted}" />
+                                            <TextBox Text="{Binding Region, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="2" Margin="8,0">
+                                            <TextBlock Text="Prueba por defecto" Style="{StaticResource Muted}" />
+                                            <ComboBox ItemsSource="{Binding ProbeTypes}" SelectedIndex="{Binding ProbeIndex}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="3" Margin="8,0,0,0">
+                                            <TextBlock Text="URL de salud HTTP/S (opcional)" Style="{StaticResource Muted}" />
+                                            <TextBox Text="{Binding HttpHealthUrl, UpdateSourceTrigger=PropertyChanged}" />
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <Button Content="+ Añadir servidor objetivo" Command="{Binding AddTargetCommand}" Margin="0,2,0,0" />
+
+                <StackPanel Orientation="Horizontal" Margin="0,16,0,4">
+                    <Button Content="Guardar juego" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}" />
+                    <Button Content="Eliminar juego" Style="{StaticResource DangerButton}" Command="{Binding DeleteCommand}" />
+                </StackPanel>
+                <TextBlock Text="Aviso: algunos juegos o plataformas prohíben VPN/proxies en sus términos. Revisa las condiciones del juego antes de usar un túnel."
+                           Style="{StaticResource Muted}" Foreground="#FFFFE0A0" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

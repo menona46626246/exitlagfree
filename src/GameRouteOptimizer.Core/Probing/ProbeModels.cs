@@ -36,6 +36,7 @@ public enum ProbeFailureReason
     Unreachable,
     Refused,
     ProtocolNotSupported,
+    Cancelled,
     Error,
 }
 

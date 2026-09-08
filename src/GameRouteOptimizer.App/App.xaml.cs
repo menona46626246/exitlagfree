@@ -1,41 +1,71 @@
 using System.Windows;
 using System.Windows.Threading;
+using GameRouteOptimizer.App.ViewModels;
 
 namespace GameRouteOptimizer.App;
 
-/// <summary>
-/// Aplicación WPF de GameRoute Optimizer.
-/// </summary>
-public partial class App : Application
+public partial class App : System.Windows.Application
 {
-    internal const string SmokeTestArgument = "--smoke-test";
+    private AppServices _services = null!;
+    private MainWindow? _window;
 
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-        DispatcherUnhandledException += (_, args) =>
+        DispatcherUnhandledException += OnDispatcherUnhandledException;
+
+        try
+        {
+            _services = new AppServices(Dispatcher);
+            AppServices.Current = _services;
+
+            var vm = new MainViewModel(_services);
+            _window = new MainWindow { DataContext = vm };
+            MainWindow = _window;
+            _window.Show();
+        }
+        catch (Exception ex)
         {
             MessageBox.Show(
-                "Ocurrió un error inesperado: " + args.Exception.Message,
-                "GameRoute Optimizer — Error",
-                MessageBoxButton.OK,
-                MessageBoxImage.Error);
-            args.Handled = true;
-        };
-
-        var window = new MainWindow();
-        window.Show();
-
-        // Modo autoverificación (CI / QA): abre la UI, espera unos segundos y sale con código 0.
-        if (e.Args.Contains(SmokeTestArgument, StringComparer.OrdinalIgnoreCase))
-        {
-            var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(6) };
-            timer.Tick += (_, _) =>
-            {
-                timer.Stop();
-                Shutdown(0);
-            };
-            timer.Start();
+                "No se pudo iniciar GameRoute Optimizer:\n\n" + ex,
+                "Error de inicio", MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown(1);
         }
+    }
+
+    private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        try
+        {
+            _services?.Log.Error("Excepción no controlada: {0}", e.Exception);
+        }
+        catch
+        {
+            // Nada más que hacer si el log también falla.
+        }
+
+        if (MessageBox.Show(
+                "Ocurrió un error inesperado:\n\n" + e.Exception.Message +
+                "\n\n¿Continuar la aplicación? (No la cierra)",
+                "GameRoute Optimizer", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+        {
+            e.Handled = true;
+        }
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        try
+        {
+            // Restaurar red (túnel + kill switch) y liberar recursos antes de salir.
+            _services?.StopEverythingAsync("la aplicación se cerró")
+                .GetAwaiter().GetResult();
+        }
+        catch
+        {
+            // El cierre no debe fallar.
+        }
+
+        base.OnExit(e);
     }
 }
