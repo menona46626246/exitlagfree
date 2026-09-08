@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Threading;
-using GameRouteOptimizer.App.ViewModels;
 
 namespace GameRouteOptimizer.App;
 
@@ -19,10 +18,7 @@ public partial class App : System.Windows.Application
         try
         {
             _services = new AppServices(Dispatcher);
-            AppServices.Current = _services;
-
-            var vm = new MainViewModel(_services);
-            _window = new MainWindow { DataContext = vm };
+            _window = new MainWindow();
             MainWindow = _window;
 
             if (smoke)
@@ -56,7 +52,7 @@ public partial class App : System.Windows.Application
     {
         try
         {
-            _services?.Log.Error("Excepción no controlada: {0}", e.Exception);
+            _services?.Log.Error("Excepción no controlada: " + e.Exception);
         }
         catch
         {

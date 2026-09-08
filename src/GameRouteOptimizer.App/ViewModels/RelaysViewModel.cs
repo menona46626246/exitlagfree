@@ -181,7 +181,7 @@ public sealed class RelaysViewModel : SectionViewModel
                 JitterMs = summary.JitterMs,
                 Note = summary.Note,
             };
-            App.Relays.Save(relay, out _);
+            App.Relays.Save(relay, out var ignoredSaveError);
             SelectedRelay = Relays.FirstOrDefault(r => r.Id == relay.Id) ?? SelectedRelay;
             RefreshKeyAndHealth();
             MessageBox.Show(summary.Usable

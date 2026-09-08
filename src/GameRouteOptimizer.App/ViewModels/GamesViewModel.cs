@@ -238,7 +238,7 @@ public sealed class GamesViewModel : SectionViewModel
         MessageBox.Show($"Encontrado: {chosen.FullPath}\nSe usará para detectar el proceso.",
             "Detección", MessageBoxButton.OK, MessageBoxImage.Information);
         OnPropertyChanged(nameof(SelectedProfile));
-        App.Games.Save(profile, out _);
+        App.Games.Save(profile, out var ignoredSaveError);
         return Task.CompletedTask;
     });
 
