@@ -1,3 +1,4 @@
+using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -28,6 +29,7 @@ public partial class LineChartControl : UserControl
         new PropertyMetadata("ms", OnVisualChanged));
 
     private bool _invalidatePending;
+    private INotifyCollectionChanged? _valuesCollection;
 
     public LineChartControl()
     {
@@ -35,6 +37,25 @@ public partial class LineChartControl : UserControl
         SizeChanged += (_, _) => Redraw();
         DataContextChanged += (_, _) => Redraw();
     }
+
+    private static void OnValuesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        var control = (LineChartControl)d;
+        if (control._valuesCollection is { } previous)
+        {
+            previous.CollectionChanged -= control.OnValuesCollectionChanged;
+        }
+
+        control._valuesCollection = e.NewValue as INotifyCollectionChanged;
+        if (control._valuesCollection is { } next)
+        {
+            next.CollectionChanged += control.OnValuesCollectionChanged;
+        }
+
+        control.ScheduleRedraw();
+    }
+
+    private void OnValuesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => ScheduleRedraw();
 
     public IReadOnlyList<double?>? Values
     {
@@ -96,8 +117,9 @@ public partial class LineChartControl : UserControl
         var width = ActualWidth;
         var height = ActualHeight;
 
-        // Rejilla horizontal.
-        var gridPen = new Pen(new SolidColorBrush(Color.FromRgb(0x2C, 0x36, 0x44)), 1);
+        // Rejilla horizontal (colores del tema cuando existen; valores oscuros por defecto).
+        var gridPen = new Pen(ThemeBrush("BorderBrush2", Color.FromRgb(0x2C, 0x36, 0x44)), 1);
+        var axisBrush = ThemeBrush("MutedTextBrush", Color.FromRgb(0x8F, 0xA0, 0xB0));
         const int gridLines = 4;
         for (var i = 0; i <= gridLines; i++)
         {
@@ -106,7 +128,7 @@ public partial class LineChartControl : UserControl
             var label = new TextBlock
             {
                 Text = FormatAxisValue(MaxValue * i / gridLines),
-                Foreground = new SolidColorBrush(Color.FromRgb(0x8F, 0xA0, 0xB0)),
+                Foreground = axisBrush,
                 FontSize = 10,
             };
             Canvas.SetLeft(label, width - 32);
@@ -119,7 +141,7 @@ public partial class LineChartControl : UserControl
             var empty = new TextBlock
             {
                 Text = "acumulando muestras…",
-                Foreground = new SolidColorBrush(Color.FromRgb(0x8F, 0xA0, 0xB0)),
+                Foreground = axisBrush,
                 FontSize = 11,
             };
             Canvas.SetLeft(empty, 8);
@@ -140,8 +162,12 @@ public partial class LineChartControl : UserControl
         var effectiveMax = Math.Max(10, max * 1.15);
         var stepX = plotWidth / Math.Max(1, values.Count - 1);
 
-        var points = new List<Point>(values.Count);
-        for (var i = 0; i < values.Count; i++)
+        // Submuestreo: si hay más muestras que píxeles de ancho, se dibuja una por píxel
+        // (la ventana se mueve igual: la serie completa se comprime con el mismo paso X).
+        var stride = Math.Max(1, (int)Math.Ceiling(values.Count / Math.Max(1.0, plotWidth)));
+        var pointCount = 1 + (values.Count - 1) / stride;
+        var points = new List<Point>(pointCount);
+        for (var i = 0; i < values.Count; i += stride)
         {
             var x = i * stepX;
             var y = plotHeight - 4 - (plotHeight - 14) * Math.Min(1, values[i] / effectiveMax);
@@ -201,6 +227,13 @@ public partial class LineChartControl : UserControl
         >= 10 => $"{value:F0}",
         _ => $"{value:F1}",
     };
+
+    /// <summary>
+    /// Pincel del tema actual (recurso XAML) con respaldo oscuro si aún no hay tema cargado.
+    /// Se consulta en cada redibujo para reflejar cambios de tema sin reiniciar.
+    /// </summary>
+    private Brush ThemeBrush(string resourceKey, Color fallback) =>
+        TryFindResource(resourceKey) as Brush ?? new SolidColorBrush(fallback);
 }
 
 internal static class ShapePositionExtensions

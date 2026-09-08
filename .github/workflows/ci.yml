@@ -56,7 +56,15 @@ jobs:
           }
 
       - name: Ejecutar tests (xUnit)
-        run: dotnet test src/GameRouteOptimizer.sln -c Release --no-build --logger "trx;LogFileName=results.trx"
+        run: |
+          dotnet test src/GameRouteOptimizer.sln -c Release --no-build --logger "trx;LogFileName=results.trx" 2>&1 | Out-File -FilePath "$env:TEMP\gro-test.log" -Encoding utf8
+          $code = $LASTEXITCODE
+          if ($code -ne 0) {
+            Get-Content "$env:TEMP\gro-test.log" | Select-String -Pattern 'Failed|error [A-Z]+[0-9]+' | Select-Object -First 40 | ForEach-Object {
+              Write-Output "::error title=tests::$($_.Line)"
+            }
+            exit $code
+          }
 
       - name: Verificar formato (dotnet format, informativo)
         run: dotnet format src/GameRouteOptimizer.sln --verify-no-changes --no-restore
