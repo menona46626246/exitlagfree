@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
-using Serilog.Formatting.Compact;
 using GameRouteOptimizer.Core.Models;
 
 namespace GameRouteOptimizer.Core.Services;
