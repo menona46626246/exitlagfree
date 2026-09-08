@@ -34,7 +34,7 @@ public sealed class DpapiSecretProtector : ISecretProtector
 
         var bytes = System.Security.Cryptography.ProtectedData.Protect(
             System.Text.Encoding.UTF8.GetBytes(plainText),
-            AdditionalEntropy: System.Text.Encoding.UTF8.GetBytes("GameRouteOptimizer v1"),
+            optionalEntropy: System.Text.Encoding.UTF8.GetBytes("GameRouteOptimizer v1"),
             DataProtectionScope.CurrentUser);
         return Convert.ToBase64String(bytes);
     }
@@ -48,7 +48,7 @@ public sealed class DpapiSecretProtector : ISecretProtector
 
         var bytes = System.Security.Cryptography.ProtectedData.Unprotect(
             Convert.FromBase64String(protectedBase64),
-            AdditionalEntropy: System.Text.Encoding.UTF8.GetBytes("GameRouteOptimizer v1"),
+            optionalEntropy: System.Text.Encoding.UTF8.GetBytes("GameRouteOptimizer v1"),
             DataProtectionScope.CurrentUser);
         return System.Text.Encoding.UTF8.GetString(bytes);
     }

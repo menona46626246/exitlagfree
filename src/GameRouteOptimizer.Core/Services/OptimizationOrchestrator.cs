@@ -1,5 +1,6 @@
 using GameRouteOptimizer.Core.Models;
 using GameRouteOptimizer.Core.Probing;
+using GameRouteOptimizer.Core.Routing;
 using GameRouteOptimizer.Core.Scoring;
 using GameRouteOptimizer.Core.Services;
 using GameRouteOptimizer.Core.State;

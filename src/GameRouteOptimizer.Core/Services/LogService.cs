@@ -48,7 +48,7 @@ public sealed class LogService : IDisposable
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"LogService no pudo inicializar el archivo: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"LogService no pudo inicializar el archivo: {ex.Message}");
             _fileLogger = null;
         }
     }

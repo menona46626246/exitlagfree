@@ -24,7 +24,9 @@ public sealed class SystemProbeTransport : IProbeTransport
             using var ping = new Ping();
             var options = new PingOptions { Ttl = ttl, DontFragment = false };
             var buffer = new byte[PayloadSize];
-            var reply = await ping.SendPingAsync(target, timeoutMs, buffer, options, ct).ConfigureAwait(false);
+            var reply = await ping.SendPingAsync(
+                    target, TimeSpan.FromMilliseconds(timeoutMs), buffer, options, ct)
+                .ConfigureAwait(false);
 
             switch (reply.Status)
             {
@@ -104,7 +106,7 @@ public sealed class SystemProbeTransport : IProbeTransport
             using var udp = new UdpClient(target.AddressFamily);
             udp.Connect(target, port);
             var payload = new byte[1] { 0x00 };
-            await udp.SendAsync(payload, payload.Length, cts.Token).ConfigureAwait(false);
+            await udp.SendAsync(payload, cts.Token).ConfigureAwait(false);
             var receiveResult = await udp.ReceiveAsync(cts.Token).ConfigureAwait(false);
             sw.Stop();
             return ProbeReply.Ok(sw.Elapsed.TotalMilliseconds,
