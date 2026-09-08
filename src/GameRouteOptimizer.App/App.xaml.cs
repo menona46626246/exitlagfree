@@ -14,6 +14,8 @@ public partial class App : System.Windows.Application
         base.OnStartup(e);
         DispatcherUnhandledException += OnDispatcherUnhandledException;
 
+        var smoke = e.Args.Any(a => a.Equals("--smoke-test", StringComparison.OrdinalIgnoreCase));
+
         try
         {
             _services = new AppServices(Dispatcher);
@@ -22,7 +24,24 @@ public partial class App : System.Windows.Application
             var vm = new MainViewModel(_services);
             _window = new MainWindow { DataContext = vm };
             MainWindow = _window;
-            _window.Show();
+
+            if (smoke)
+            {
+                // Smoke-test de CI: construye servicios, VMs y la ventana principal
+                // (carga el XAML de cada sección) y sale solo con código 0.
+                _services.Log.Info("Smoke-test: la UI se construyó correctamente.");
+                var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(6) };
+                timer.Tick += (_, _) =>
+                {
+                    timer.Stop();
+                    Shutdown(0);
+                };
+                timer.Start();
+            }
+            else
+            {
+                _window.Show();
+            }
         }
         catch (Exception ex)
         {

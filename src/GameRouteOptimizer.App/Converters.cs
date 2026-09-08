@@ -78,17 +78,10 @@ public sealed class MsDisplayConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is double d && d > 0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, "{0:F1} ms", d);
-        }
-
-        if (value is double? nullable && nullable.HasValue && nullable.Value > 0)
-        {
-            return string.Format(CultureInfo.CurrentCulture, "{0:F1} ms", nullable.Value);
-        }
-
-        return "—";
+        var ms = value as double?;
+        return ms is { } v && v > 0
+            ? string.Format(CultureInfo.CurrentCulture, "{0:F1} ms", v)
+            : "—";
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
@@ -100,17 +93,10 @@ public sealed class PercentDisplayConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is double d)
-        {
-            return string.Format(CultureInfo.CurrentCulture, "{0:F1} %", d);
-        }
-
-        if (value is double? nullable && nullable.HasValue)
-        {
-            return string.Format(CultureInfo.CurrentCulture, "{0:F1} %", nullable.Value);
-        }
-
-        return "—";
+        var pct = value as double?;
+        return pct is { } v
+            ? string.Format(CultureInfo.CurrentCulture, "{0:F1} %", v)
+            : "—";
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
