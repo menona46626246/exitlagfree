@@ -1,6 +1,6 @@
 # STATE — GameRoute Optimizer
 
-Última actualización: 2026-09-08 — **CI en verde** (run `34229410950`, HEAD `fe77ff6`: Linux + Windows ✅, **54/54 tests** + smoke-test de la UI).
+Última actualización: 2026-09-08 — **CI en verde** (run `34230061934`, HEAD `6dcf2b5`: Linux + Windows ✅, **54/54 tests** + smoke-test de la UI).
 
 ## Entorno de desarrollo de esta sesión
 - Máquina local: Linux (Debian) **sin SDK de .NET** y con nuget.org bloqueado → la compilación y los tests
@@ -43,7 +43,7 @@
 - **SQLite**: `busy_timeout` + `DefaultTimeout`; filas corruptas o subobjetos nulos se rehidratan a defaults.
 - **Red/túnel**: secuencias de una sola elevación por acción con rollback; kill switch con reglas `GRO_KillSwitch_*`, excepciones túnel/endpoint/LAN y restauración del estado previo; estado de red persistido (`network_state`) y recuperación al arranque; auto-failback con N comprobaciones consecutivas y margen de histéresis.
 
-## Pulido UX (fase 11, HEAD `fe77ff6`)
+## Pulido UX (fase 11, HEAD `6dcf2b5`)
 - **Panel principal**: franja de estado en vivo («midiendo…», «túnel activo…», avisos de degradación), jitter de la ruta directa y del túnel, hora de la última medición, botones Optimizar/Detener habilitados según estado, banner de confirmación de relay recomendado (confirmar/mantener directa) y tarjeta de **notificaciones recientes** (⛔/⚠/ⓘ con hora).
 - **Diagnóstico**: tabla comparativa «ruta directa vs relays» (latencia, pérdida, jitter, utilizable) generada con las mismas sondas, además del detalle técnico y el traceroute existentes.
 - **Relays**: prueba rápida «Probar» desde la propia lista (no solo en el editor), latencia/jitter/pérdida en cada fila y línea de carga estimada cuando el relay la declara.
