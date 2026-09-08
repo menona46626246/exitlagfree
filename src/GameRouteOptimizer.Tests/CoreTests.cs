@@ -179,8 +179,11 @@ public class CoreTests
                 PersistentKeepalive = 25
                 """;
 
+            var parsed = GameRouteOptimizer.Core.Tunneling.WireGuardConfigParser.Parse(conf);
+            Assert.True(parsed.Ok, "parse .conf: " + string.Join(" | ", parsed.Errors));
+
             var relay = manager.ImportFromConfigText(conf, null, out var warnings);
-            Assert.NotNull(relay);
+            Assert.True(relay is not null, "import .conf: " + string.Join(" | ", warnings));
             Assert.Equal("relay.ejemplo.com", relay!.EndpointHost);
             Assert.Equal(51820, relay.EndpointPort);
             Assert.Equal("1.1.1.1", relay.DnsInternal);
@@ -201,8 +204,14 @@ public class CoreTests
         try
         {
             var manager = new RelayManager(store, new NoOpProtector());
-            var relay = new RelayNode { Name = "R1", EndpointHost = "10.0.0.2", EndpointPort = 51820 };
-            manager.Save(relay, out _);
+            var relay = new RelayNode
+            {
+                Name = "R1",
+                EndpointHost = "10.0.0.2",
+                EndpointPort = 51820,
+                PublicKey = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            };
+            Assert.True(manager.Save(relay, out var saveError), "Save relay: " + saveError);
             var json = RelayManager.ExportToJson(manager.GetAll());
             Assert.DoesNotContain("PrivateKey", json, StringComparison.Ordinal);
             Assert.DoesNotContain("Privada", json, StringComparison.OrdinalIgnoreCase);
@@ -334,7 +343,8 @@ public class CoreTests
             "gro0");
         Assert.Contains("203.0.113.7/32", game.AllowedIps);
         Assert.Contains(game.RoutesToAdd, r => r.Prefix == "203.0.113.7/32" && r.InterfaceName == "gro0");
-        Assert.Contains(game.Warnings, w => w.Contains("no-es-ip", StringComparison.Ordinal));
+        Assert.DoesNotContain(game.AllowedIps, a => a.Contains("no-es-ip", StringComparison.Ordinal));
+        Assert.Contains(game.Warnings, w => w.Contains("server.ejemplo.com", StringComparison.Ordinal));
         Assert.True(game.NeedsTunnelRoutes);
     }
 
