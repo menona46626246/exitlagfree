@@ -128,12 +128,14 @@
                                 <TextBox Text="{Binding Settings.Tunnel.ConnectTimeoutSeconds, UpdateSourceTrigger=PropertyChanged}" />
                             </StackPanel>
                         </Grid>
-                        <TextBlock Text="DNS a forzar en el túnel (vacío = el del relay)" Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                        <TextBlock Text="DNS del túnel (IP IPv4; vacío = el del relay)" Style="{StaticResource Muted}" Margin="0,8,0,0" />
                         <TextBox Text="{Binding Settings.Tunnel.DnsOverride, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Text="El DNS se aplica a la interfaz del túnel y, en modo «solo juego», se encamina por el túnel si el relay lo cubre (protección básica contra fugas DNS)."
+                                   Style="{StaticResource Muted}" Margin="0,6,0,0" TextWrapping="Wrap" />
                         <CheckBox Content="Activar kill switch con el túnel (requiere administrador)"
                                   IsChecked="{Binding Settings.Tunnel.KillSwitchEnabled}" Margin="0,10,0,0" />
-                        <TextBlock Text="El kill switch bloquea la salida fuera del túnel; se desactiva siempre al detener. Puede aislarte de internet si el túnel cae: úsalo con criterio."
-                                   Style="{StaticResource Muted}" Margin="0,8,0,0" />
+                        <TextBlock Text="El kill switch bloquea toda la salida salvo el túnel, el endpoint del relay y tu red local; se restaura siempre al detener (botón de emergencia incluido) y al arrancar si quedó de una sesión anterior. Si el túnel se cae y no se puede restaurar, puede aislarte de internet: úsalo con criterio."
+                                   Style="{StaticResource Muted}" Margin="0,8,0,0" TextWrapping="Wrap" />
                     </StackPanel>
                 </Border>
 

@@ -379,11 +379,17 @@ public sealed class OptimizationOrchestrator : IDisposable
         {
             // Emergencia: restaura la red aunque el worker esté bloqueado.
             _log.Warn("¡BOTÓN DE EMERGENCIA! Restaurando red…");
-            await _killSwitch.ForceDisableAsync().ConfigureAwait(false);
-            await _tunnel.DisconnectAsync("emergencia: restaurar red", CancellationToken.None)
+            var (ksOk, ksError) = await _killSwitch.ForceDisableWithResultAsync().ConfigureAwait(false);
+            _log.Info("Emergencia: kill switch " + (ksOk ? "desactivado." : "no se pudo desactivar: " + ksError));
+            var (tOk, tError) = await _tunnel.DisconnectAsync("emergencia: restaurar red", CancellationToken.None)
                 .ConfigureAwait(false);
+            _log.Info("Emergencia: túnel " + (tOk ? "detenido; rutas y DNS restaurados." : "NO se pudo detener: " + tError));
+            PersistNetworkState();
             _notifications.Info("Red restaurada",
-                "Se detuvo el túnel y se desactivó el kill switch. Revisa la conexión.");
+                tOk
+                    ? "Se detuvo el túnel, se restauraron rutas/DNS y se desactivó el kill switch. Revisa la conexión."
+                    : "El túnel no se pudo detener automáticamente (" + tError +
+                      "). Vuelve a pulsar el botón o reinicia la aplicación; el próximo arranque intentará la recuperación.");
         }
 
         try
@@ -554,9 +560,9 @@ public sealed class OptimizationOrchestrator : IDisposable
                     "Sin relay utilizable; el modo seleccionado requiere un relay. Se mantiene ruta directa.");
             }
 
-            var mode = profile.RouteMode == RouteMode.Direct
-                ? RouteMode.Direct
-                : RouteMode.TunnelGameDestinations;
+            // El modo del perfil se respeta tal cual: Direct (sin túnel), TunnelGlobal
+            // (todo el tráfico) o TunnelGameDestinations (solo destinos del juego).
+            var mode = profile.RouteMode;
 
             // 4) ¿Conectar túnel?
             if (selectedRelay is not null && profile.RouteMode != RouteMode.Direct)
@@ -666,10 +672,18 @@ public sealed class OptimizationOrchestrator : IDisposable
             .ToList();
         var destIps = await RouteCalculator.ResolveDestinationsAsync(destHosts, ct).ConfigureAwait(false);
 
-        var config = WireGuardConfigBuilder.Build(relay, mode, destIps, settings.Tunnel.Mtu, settings.Tunnel.DnsOverride);
+        var buildWarnings = new List<string>();
+        var config = WireGuardConfigBuilder.Build(relay, mode, destIps, settings.Tunnel.Mtu,
+            settings.Tunnel.DnsOverride, buildWarnings);
         if (config is null)
         {
             throw new InvalidOperationException("No se pudo construir la configuración del túnel.");
+        }
+
+        foreach (var warning in buildWarnings)
+        {
+            _log.Warn("Túnel: " + warning);
+            AddSessionEvent(SessionEventCategory.Warning, warning);
         }
 
         if (!_state.TryTransition(ProgramState.Connecting, $"conectando con {relay.Name}"))
@@ -677,40 +691,106 @@ public sealed class OptimizationOrchestrator : IDisposable
             return;
         }
 
-        AddSessionEvent(SessionEventCategory.Tunnel, $"Conectando túnel WireGuard con «{relay.Name}» ({mode}).");
+        var tunnelDnsServers = Tunneling.TunnelDns.Ipv4Servers(config.Dns);
+        AddSessionEvent(SessionEventCategory.Tunnel,
+            $"Conectando túnel WireGuard con «{relay.Name}» ({ModeDescription(mode)})." +
+            (tunnelDnsServers.Count > 0 ? " DNS del túnel: " + string.Join(", ", tunnelDnsServers) + "." : string.Empty));
+        if (Tunneling.TunnelDns.HasNonIpv4Entries(config.Dns) && tunnelDnsServers.Count == 0)
+        {
+            var msg = "El DNS configurado («" + config.Dns + "») no contiene IPs IPv4 válidas; " +
+                      "no se aplicará como DNS del túnel en esta versión.";
+            _log.Warn(msg);
+            AddSessionEvent(SessionEventCategory.Warning, msg);
+        }
+
         _notifications.Info("Conectando túnel",
-            $"Se solicitará permiso de administrador para crear el túnel con «{relay.Name}».");
+            $"Se solicitará permiso de administrador una vez para crear el túnel con «{relay.Name}».");
 
         var tunnelName = "GRO-" + relay.Id[..Math.Min(6, relay.Id.Length)];
+
+        // Persistir el túnel ESPERADO antes de la operación: si la app muere a mitad
+        // (instalado pero sin terminar de conectar), el próximo arranque lo recupera.
+        if (_tunnel.OpsAvailable)
+        {
+            PersistNetworkState(tunnelName);
+        }
+
+        _log.Info($"Conectando túnel: relay={relay.Name}, modo={mode}, interfaz={tunnelName}, " +
+                  $"destinos IPv4={destIps.Count}, DNS túnel={tunnelDnsServers.Count}, " +
+                  $"kill switch solicitado={settings.Tunnel.KillSwitchEnabled}.");
         var (ok, error) = await _tunnel.ConnectAsync(config, tunnelName, mode, relay.Id, relay.Name, ct)
             .ConfigureAwait(false);
 
         if (!ok)
         {
+            _log.Error("Fallo al conectar el túnel: " + error);
+            // Si el rollback interno no pudo revertir la instalación parcial, se mantiene el
+            // nombre esperado persistido para que el próximo arranque pueda recuperarlo.
+            if (error is not null && error.Contains("No se pudo revertir", StringComparison.OrdinalIgnoreCase))
+            {
+                PersistNetworkState(tunnelName);
+            }
+            else
+            {
+                PersistNetworkState();
+            }
+
             _state.TryTransition(ProgramState.Error, "no se pudo conectar el túnel: " + error);
             throw new InvalidOperationException("No se pudo conectar el túnel: " + error);
         }
 
-        // Kill switch opcional (requiere elevación; se activa después del túnel).
+        _log.Info($"Túnel activo: interfaz={tunnelName}, relay={relay.Name}, modo={mode}.");
+        PersistNetworkState();
+
+        // Kill switch opcional (segunda elevación, solo si está habilitado).
         if (settings.Tunnel.KillSwitchEnabled)
         {
-            var ksResult = await _killSwitch.EnableAsync(tunnelName,
+            // El handshake de WireGuard sale por la interfaz física hacia el endpoint del relay:
+            // el kill switch necesita esas IPs para permitirlo. Solo IPv4 en v1.
+            var endpointIps = await RouteCalculator.ResolveDestinationsAsync(
                 new[] { relay.EndpointHost }, ct).ConfigureAwait(false);
-            if (!ksResult.Ok)
+            if (endpointIps.Count == 0)
             {
-                _notifications.Warn("Kill switch no activado",
-                    "No se pudo activar el kill switch: " + ksResult.Error +
-                    ". Si el túnel se cae, la red volverá a salir por la ruta normal.");
+                var msg = "No se pudo resolver el endpoint del relay («" + relay.EndpointHost +
+                          "») a IP IPv4; el kill switch no se activa para no cortar el túnel. " +
+                          "Revisa el relay o desactiva el kill switch.";
+                _log.Warn(msg);
+                _notifications.Warn("Kill switch no activado", msg);
+                AddSessionEvent(SessionEventCategory.Warning, msg);
             }
+            else
+            {
+                var ksResult = await _killSwitch.EnableAsync(tunnelName, endpointIps, relay.EndpointPort, ct)
+                    .ConfigureAwait(false);
+                if (ksResult.Ok)
+                {
+                    _log.Info($"Kill switch activado: interfaz {tunnelName}, endpoint {string.Join(", ", endpointIps)}:" +
+                              $"{relay.EndpointPort}, LAN permitida.");
+                    AddSessionEvent(SessionEventCategory.Tunnel,
+                        "Kill switch activado: la salida queda bloqueada salvo túnel, endpoint del relay y red local.");
+                }
+                else
+                {
+                    _log.Warn("No se pudo activar el kill switch: " + ksResult.Error);
+                    _notifications.Warn("Kill switch no activado",
+                        "No se pudo activar el kill switch: " + ksResult.Error +
+                        ". El túnel sigue activo sin bloqueo: si el túnel se cae, la red volverá a salir por la ruta normal.");
+                    AddSessionEvent(SessionEventCategory.Warning,
+                        "Kill switch no activado: " + ksResult.Error);
+                }
+            }
+
+            PersistNetworkState();
         }
 
         _currentSession!.RelayId = relay.Id;
         _currentSession.RelayName = relay.Name;
-        _sessions.SetRelay(_currentSession, relay);
+        _sessions.SetRelay(_currentSession, relay, mode);
 
         _state.TryTransition(ProgramState.Active, "túnel activo");
         _lastSwitchUtc = DateTimeOffset.UtcNow;
-        AddSessionEvent(SessionEventCategory.RouteChange, $"Túnel activo vía «{relay.Name}» (modo {mode}).");
+        AddSessionEvent(SessionEventCategory.RouteChange,
+            $"Túnel activo vía «{relay.Name}» (modo {ModeDescription(mode)}).");
         PublishMetrics();
     }
 
@@ -729,6 +809,12 @@ public sealed class OptimizationOrchestrator : IDisposable
             activeRelay is null
                 ? "Monitoreo en ruta directa: se comparará con relays medidos."
                 : $"Monitoreo del túnel por «{activeRelay.Name}» cada {intervalSeconds} s.");
+
+        // El estado real del túnel (wg show) puede exigir elevar el proceso; consultarlo en cada
+        // tick pediría UAC constantemente. La salud se decide con las sondas (sin privilegios);
+        // la consulta a wg se fuerza solo ante sospecha de caída o cada 60 s como máximo.
+        var lastStatusQueryUtc = DateTimeOffset.MinValue;
+        var lastStatusHealthy = true;
 
         while (!ct.IsCancellationRequested)
         {
@@ -783,9 +869,14 @@ public sealed class OptimizationOrchestrator : IDisposable
                     }
                     else if (winnerRelay is not null)
                     {
-                        _state.TryTransition(ProgramState.WaitingUser, "relay recomendado; esperando confirmación");
-                        _notifications.Info("Relay recomendado",
-                            $"«{winnerRelay.Name}» parece mejor que la ruta directa. Confírmalo en el panel.");
+                        // Solo se avisa/transiciona una vez: mientras el usuario no confirme,
+                        // no se repite la notificación en cada ciclo del monitor.
+                        if (_state.State != ProgramState.WaitingUser)
+                        {
+                            _state.TryTransition(ProgramState.WaitingUser, "relay recomendado; esperando confirmación");
+                            _notifications.Info("Relay recomendado",
+                                $"«{winnerRelay.Name}» parece mejor que la ruta directa. Confírmalo en el panel.");
+                        }
                     }
                 }
                 else
@@ -797,8 +888,18 @@ public sealed class OptimizationOrchestrator : IDisposable
             }
 
             // ---- Túnel activo: salud del túnel y comparación directo vs túnel ----
-            var tunnelStatus = await _tunnel.GetStatusAsync(ct).ConfigureAwait(false);
-            var tunnelHealthy = tunnelStatus.State is TunnelProviderState.Active;
+            var sinceLastStatus = DateTimeOffset.UtcNow - lastStatusQueryUtc;
+            var suspicious = _targetViaTunnelFailures >= 1 || _tunnelFailures >= 1;
+            var tunnelStatus = await _tunnel.GetStatusAsync(ct,
+                    force: suspicious && sinceLastStatus > TimeSpan.FromSeconds(30))
+                .ConfigureAwait(false);
+            if (suspicious || sinceLastStatus > TimeSpan.FromSeconds(60))
+            {
+                lastStatusQueryUtc = DateTimeOffset.UtcNow;
+            }
+
+            lastStatusHealthy = tunnelStatus.State is TunnelProviderState.Active;
+            var tunnelHealthy = lastStatusHealthy;
 
             // Probe al destino a través del túnel (cuando el túnel enruta el destino, la probe viaja
             // por WireGuard). Como referencia de "ruta directa" se usa la muestra anterior al túnel.
@@ -999,17 +1100,29 @@ public sealed class OptimizationOrchestrator : IDisposable
 
     private async Task CleanupTunnelAsync(string reason)
     {
-        // Orden seguro: primero kill switch (deja de bloquear), luego túnel (quita rutas/DNS).
-        // Timeout amplio: si la elevación (UAC) queda sin responder, no bloquear la app.
+        // Orden seguro: primero kill switch (deja de bloquear), luego túnel (restaura DNS y
+        // elimina interfaz/rutas). Timeout amplio: si la elevación (UAC) queda sin responder,
+        // no bloquear la app; el estado persistido permite recuperar en el próximo arranque.
         using var cleanupCts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-        await _killSwitch.DisableAsync(cleanupCts.Token).ConfigureAwait(false);
-        var (_, error) = await _tunnel.DisconnectAsync(reason, cleanupCts.Token).ConfigureAwait(false);
-        if (error is not null)
+        var (ksOk, ksError) = await _killSwitch.DisableAsync(cleanupCts.Token).ConfigureAwait(false);
+        if (!ksOk)
         {
-            _log.Error("No se pudo detener el túnel limpiamente: " + error);
+            _log.Warn("No se pudo desactivar el kill switch: " + ksError);
+        }
+
+        var (tOk, tError) = await _tunnel.DisconnectAsync(reason, cleanupCts.Token).ConfigureAwait(false);
+        PersistNetworkState();
+
+        if (!tOk)
+        {
+            _log.Error("No se pudo detener el túnel limpiamente: " + tError);
             AddSessionEvent(SessionEventCategory.Error,
-                "No se pudo detener el túnel limpiamente: " + error +
-                ". Usa el botón de emergencia o el script de restauración (docs/tunel-admin.md).");
+                "No se pudo detener el túnel limpiamente: " + tError +
+                ". Usa el botón «Detener y restaurar red» o consulta docs/solucion-problemas.md.");
+        }
+        else
+        {
+            _log.Info($"Túnel detenido y red restaurada ({reason}).");
         }
     }
 
@@ -1246,6 +1359,84 @@ public sealed class OptimizationOrchestrator : IDisposable
     private void LogError(string message)
     {
         _log.Error(message);
+    }
+
+    /// <summary>
+    /// Persiste qué recursos de red están activos, para recuperarlos tras un cierre inesperado.
+    /// <paramref name="expectedTunnelName"/> permite guardar el túnel que se está creando antes
+    /// de que la operación termine (ventana de caída a mitad de la activación).
+    /// </summary>
+    private void PersistNetworkState(string? expectedTunnelName = null)
+    {
+        try
+        {
+            _store.SaveNetworkRuntimeState(new NetworkRuntimeState
+            {
+                TunnelInterfaceName = expectedTunnelName ?? _tunnel.Active?.InterfaceName,
+                KillSwitchEnabled = _killSwitch.IsEnabled,
+            });
+        }
+        catch (Exception ex)
+        {
+            _log.Warn("No se pudo persistir el estado de red: " + ex.Message);
+        }
+    }
+
+    private static string ModeDescription(RouteMode mode) => mode switch
+    {
+        RouteMode.TunnelGlobal => "global (todo el tráfico por el túnel)",
+        RouteMode.TunnelGameDestinations => "solo destinos del juego",
+        _ => "ruta directa",
+    };
+
+    /// <summary>
+    /// Recuperación de red tras un cierre inesperado (arranque de la app): si el estado
+    /// persistido indica un túnel GRO o un kill switch activos, se desactivan. No toca nada
+    /// si no hay restos (caso normal: no pide elevación).
+    /// </summary>
+    public async Task RecoverAfterCrashAsync()
+    {
+        NetworkRuntimeState state;
+        try
+        {
+            state = _store.LoadNetworkRuntimeState();
+        }
+        catch (Exception ex)
+        {
+            _log.Warn("No se pudo leer el estado de red persistido: " + ex.Message);
+            return;
+        }
+
+        var hasTunnel = !string.IsNullOrWhiteSpace(state.TunnelInterfaceName);
+        if (!hasTunnel && !state.KillSwitchEnabled)
+        {
+            return;
+        }
+
+        _log.Warn("Recuperación de red: se detectó un cierre inesperado previo " +
+                  $"(túnel «{state.TunnelInterfaceName ?? "(ninguno)"}», " +
+                  $"kill switch {(state.KillSwitchEnabled ? "activo" : "inactivo")}). Restaurando…");
+
+        if (state.KillSwitchEnabled)
+        {
+            using var ksCts = new CancellationTokenSource(TimeSpan.FromSeconds(40));
+            var (ok, error) = await _killSwitch.CleanupAndDisableAsync(ksCts.Token).ConfigureAwait(false);
+            _log.Info("Recuperación: kill switch " + (ok ? "desactivado." : "fallo: " + error));
+        }
+
+        if (hasTunnel)
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+            var (ok, error) = await _tunnel.RemoveLeftoverAsync(state.TunnelInterfaceName!, cts.Token)
+                .ConfigureAwait(false);
+            _log.Info("Recuperación: túnel huérfano " + (ok ? "eliminado." : "no se pudo eliminar: " + error));
+        }
+
+        PersistNetworkState();
+        _log.Info("Recuperación completada: la red quedó en estado normal (ruta directa).");
+        _notifications.Info("Red restaurada tras un cierre inesperado",
+            "Se detectaron restos de una sesión anterior (túnel o kill switch) y se restauró " +
+            "la red a su estado normal.");
     }
 
     public event EventHandler<RelayNode>? NeedsPrivateKey;

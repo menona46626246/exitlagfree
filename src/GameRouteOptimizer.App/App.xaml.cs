@@ -18,6 +18,13 @@ public partial class App : System.Windows.Application
         try
         {
             _services = new AppServices(Dispatcher);
+            if (!smoke)
+            {
+                // Recuperación tras un cierre inesperado: si la sesión anterior dejó un túnel
+                // GRO o el kill switch activos, se restauran (puede pedir elevación una vez).
+                _ = RecoverNetworkAfterStartupAsync();
+            }
+
             _window = new MainWindow();
             MainWindow = _window;
 
@@ -65,6 +72,25 @@ public partial class App : System.Windows.Application
                 "GameRoute Optimizer", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
         {
             e.Handled = true;
+        }
+    }
+
+    private async Task RecoverNetworkAfterStartupAsync()
+    {
+        try
+        {
+            await _services.Orchestrator.RecoverAfterCrashAsync();
+        }
+        catch (Exception ex)
+        {
+            try
+            {
+                _services.Log.Error("No se pudo completar la recuperación de red: " + ex);
+            }
+            catch
+            {
+                // Nada más que hacer si el log también falla.
+            }
         }
     }
 

@@ -47,7 +47,17 @@ Decisiones menores autónomas (regla 2 del encargo):
 2. **Sin paquetes de UI de terceros** (LiveCharts2/ScottPlot/CommunityToolkit): se implementa lo necesario a mano; compila con menos riesgo.
 3. **Los relays siempre son del usuario.** No hay lista pública de relays: sin backend no puede haberla. El usuario importa/configura sus propios endpoints WireGuard (los que ya paga o administra).
 4. **El "split tunneling" por proceso no es posible sin drivers propios** (prohibidos): se implementa *routing por destino* (solo las IP/destinos del juego entran al túnel). Cuando no se puede enrutar por destino, se advierte que el túnel será global.
-5. **DNS del túnel**: configurable y restaurado al detener. Kill switch: firewall de Windows (reglas `wf.msc` vía `netsh advfirewall`) solo cuando el usuario lo activa y con aviso explícito; se desactiva siempre al salir. Si no hay privilegios, se documenta el fallo claramente.
+5. **DNS del túnel**: solo IPv4 literales se aplican a la interfaz (lo que acepta `netsh`); en modo
+   «solo destinos» los servidores DNS se encaminan por el túnel si el relay los cubre (anti-fuga DNS) y,
+   si no, se avisa. Se restaura al detener.
+6. **Kill switch**: solo cuando el usuario lo activa y con aviso explícito. Bloquea la **salida por
+   defecto** de los perfiles de firewall (Domain/Private/Public) y añade excepciones explícitas para la
+   interfaz del túnel, el endpoint UDP del relay y la red local (reglas `GRO_KillSwitch_*`); el estado
+   previo se guarda en `%ProgramData%\GameRouteOptimizer` y se restaura al desactivar. Se desactiva
+   siempre al salir/detener/emergencia y también al arrancar si quedó activo de una sesión anterior
+   (estado persistido `network_state` en SQLite). Sin privilegios no se activa y se explica el fallo.
+7. **Menos avisos UAC**: cada acción compuesta (activar túnel = instalar → esperar interfaz → DNS;
+   detener = desinstalar) se ejecuta como **una secuencia en una sola elevación** (`Sequence`).
 
 ## 3. Arquitectura (resumen)
 
@@ -203,8 +213,9 @@ fallo dispara restauración automática de rutas/DNS (failback) con reintentos c
 
 | Riesgo | Mitigación |
 |---|---|
-| Dejar la red del usuario rota | Toda operación de ruta/DNS se registra en un "diario de operaciones"; el botón de emergencia ejecuta la restauración inversa; nunca se borran rutas originales (solo rutas añadidas); kill switch desactivable. |
-| Túnel que empeora la conexión | Comparación continua directo vs túnel; auto-failback con histéresis. |
+| Dejar la red del usuario rota | Nunca se borran rutas originales (WireGuard añade y quita las suyas con la interfaz); activación reversible con rollback si falla a mitad; el estado de red se persiste (`network_state`) y el arranque recupera túnel/kill switch de sesiones anteriores; botón de emergencia «Detener y restaurar red» siempre visible. |
+| Túnel que empeora la conexión o se cae | Comparación continua directo vs túnel; vigilancia del handshake de WireGuard (`wg show dump`); auto-failback con histéresis y N comprobaciones consecutivas. |
+| Fuga DNS con túnel activo | DNS aplicado a la interfaz del túnel; en modo «solo destinos» los servidores DNS se encaminan por el túnel cuando el relay los cubre y, si no, se avisa explícitamente (el kill switch la elimina por completo). |
 | Uso indebido (evasión de bans/geo) | Docs y UI: prohibido; herramienta solo para mejor ruta legítima. |
 | Servidores bloquean ICMP | El sistema detecta y etiqueta la métrica como no fiable; TCP connect como alternativa. |
 | Dependencias externas inestables | Mínimas (Serilog, SQLite, ProtectedData). Todo lo demás, BCL. |

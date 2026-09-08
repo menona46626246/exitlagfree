@@ -40,6 +40,19 @@ public sealed class WireGuardParseResult
     public List<string> Warnings { get; set; } = new();
 }
 
+/// <summary>
+/// Estado de red persistido (SQLite) para la recuperación tras un cierre inesperado:
+/// si la app muere con el túnel o el kill switch activos, el siguiente arranque los revierte.
+/// </summary>
+public sealed class NetworkRuntimeState
+{
+    /// <summary>Nombre de la interfaz del túnel GRO que quedó instalada (null = ninguna).</summary>
+    public string? TunnelInterfaceName { get; set; }
+
+    /// <summary>true si el kill switch quedó activo (firewall bloqueando salida).</summary>
+    public bool KillSwitchEnabled { get; set; }
+}
+
 /// <summary>Notificación mostrada en la UI (tipo toast/banner).</summary>
 public sealed class AppNotification
 {

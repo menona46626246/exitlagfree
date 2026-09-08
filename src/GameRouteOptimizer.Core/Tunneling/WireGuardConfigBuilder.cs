@@ -17,12 +17,16 @@ public static class WireGuardConfigBuilder
     /// <param name="destinationIps">IPs resueltas de los destinos del juego (modo solo-juego).</param>
     /// <param name="mtu">MTU (null = el del relay o 1420).</param>
     /// <param name="dnsOverride">DNS a forzar (opcional).</param>
+    /// <param name="warnings">
+    /// Lista opcional donde se añaden avisos legibles (p. ej. DNS que no puede enrutarse).
+    /// </param>
     public static WireGuardConfig? Build(
         RelayNode relay,
         RouteMode mode,
         IReadOnlyCollection<string>? destinationIps,
         int? mtu,
-        string? dnsOverride)
+        string? dnsOverride,
+        List<string>? warnings = null)
     {
         if (mode == RouteMode.Direct)
         {
@@ -36,8 +40,14 @@ public static class WireGuardConfigBuilder
                 "o introdúcela manualmente (se guarda cifrada con DPAPI).");
         }
 
+        // Protección básica contra fugas DNS: si el usuario fuerza un DNS, se intenta encaminar
+        // también hacia el túnel en modo solo-juego (el modo global ya lo cubre con 0.0.0.0/0).
+        var dnsServerIps = mode == RouteMode.TunnelGameDestinations
+            ? TunnelDns.Ipv4Servers(dnsOverride)
+            : new List<string>();
+
         var plan = RouteCalculator.BuildPlan(mode, Array.Empty<string>(), destinationIps ?? Array.Empty<string>(),
-            tunnelInterfaceName: string.Empty);
+            tunnelInterfaceName: string.Empty, dnsServerIps: dnsServerIps);
 
         var allowedIps = mode == RouteMode.TunnelGlobal
             ? new List<string> { "0.0.0.0/0", "::/0" }
@@ -52,9 +62,9 @@ public static class WireGuardConfigBuilder
         // Verificación honesta: ¿el relay declara cubrir esos destinos?
         var relayCidrs = relay.AllowedIps.Split(',',
             StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var relayCoversEverything = relayCidrs.Any(c => c is "0.0.0.0/0" or "::/0");
 
-        if (mode == RouteMode.TunnelGameDestinations &&
-            !relayCidrs.Any(c => c is "0.0.0.0/0" or "::/0" or "0.0.0.0/0, ::/0"))
+        if (mode == RouteMode.TunnelGameDestinations && !relayCoversEverything)
         {
             var uncovered = allowedIps.Where(ip => ip.EndsWith("/32") || ip.EndsWith("/128"))
                 .Select(ip => ip[..ip.IndexOf('/')])
@@ -62,11 +72,48 @@ public static class WireGuardConfigBuilder
                 .ToList();
             if (uncovered.Count > 0)
             {
-                throw new InvalidOperationException(
-                    "El relay no declara en su AllowedIPs cubrir los destinos del juego " +
-                    $"(p. ej. {string.Join(", ", uncovered.Take(3))}). " +
-                    "El servidor WireGuard debe enrutar esas IPs para que el túnel funcione.");
+                // Separar servidores DNS (se omiten con aviso) de destinos del juego (error duro):
+                // sin el relay no se puede enrutar el juego; el DNS solo pierde su protección.
+                var uncoveredDns = dnsServerIps
+                    .Where(dnsIp => !RouteCalculator.Ipv4IsCovered(dnsIp, relayCidrs))
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                var uncoveredGame = uncovered
+                    .Where(ip => !uncoveredDns.Contains(ip))
+                    .ToList();
+
+                if (uncoveredDns.Count > 0)
+                {
+                    // Nunca retirar la ruta de un destino del juego que coincida con la IP del DNS.
+                    var destinationSet = (destinationIps ?? Array.Empty<string>())
+                        .Select(d => d.Trim())
+                        .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                    foreach (var dnsIp in uncoveredDns)
+                    {
+                        if (!destinationSet.Contains(dnsIp))
+                        {
+                            allowedIps.Remove($"{dnsIp}/32");
+                        }
+
+                        warnings?.Add(
+                            $"El servidor DNS «{dnsIp}» no está cubierto por el AllowedIPs del relay; " +
+                            "no se encamina por el túnel y las consultas podrían salir por la ruta directa " +
+                            "(fuga DNS). Usa un DNS alcanzable por el relay o activa el kill switch.");
+                    }
+                }
+
+                if (uncoveredGame.Count > 0)
+                {
+                    throw new InvalidOperationException(
+                        "El relay no declara en su AllowedIPs cubrir los destinos del juego " +
+                        $"(p. ej. {string.Join(", ", uncoveredGame.Take(3))}). " +
+                        "El servidor WireGuard debe enrutar esas IPs para que el túnel funcione.");
+                }
             }
+        }
+        else if (dnsServerIps.Count > 0 && mode == RouteMode.TunnelGameDestinations)
+        {
+            warnings?.Add(
+                "Los servidores DNS configurados se encaminarán por el túnel (protección contra fugas DNS).");
         }
 
         var config = new WireGuardConfig

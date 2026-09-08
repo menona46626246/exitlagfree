@@ -389,6 +389,50 @@ public sealed class ConfigStore : IDisposable
         });
     }
 
+    // ---------------- estado de red (recuperación) ----------------
+
+    /// <summary>
+    /// Estado de red persistido para recuperar la conexión tras un cierre inesperado:
+    /// si la app muere con el túnel o el kill switch activos, el próximo arranque lo detecta
+    /// y restaura la red (ver OptimizationOrchestrator.RecoverAfterCrashAsync).
+    /// </summary>
+    public NetworkRuntimeState LoadNetworkRuntimeState()
+    {
+        lock (_gate)
+        {
+            using var conn = Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT json FROM Settings WHERE key='network_state';";
+            var row = cmd.ExecuteScalar() as string;
+            if (row is null)
+            {
+                return new NetworkRuntimeState();
+            }
+
+            try
+            {
+                return JsonSerializer.Deserialize<NetworkRuntimeState>(row, JsonOptions) ?? new NetworkRuntimeState();
+            }
+            catch (JsonException)
+            {
+                return new NetworkRuntimeState();
+            }
+        }
+    }
+
+    public void SaveNetworkRuntimeState(NetworkRuntimeState state)
+    {
+        lock (_gate)
+        {
+            using var conn = Open();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "INSERT INTO Settings(key, json) VALUES('network_state', $json) " +
+                              "ON CONFLICT(key) DO UPDATE SET json=$json;";
+            cmd.Parameters.AddWithValue("$json", JsonSerializer.Serialize(state, JsonOptions));
+            cmd.ExecuteNonQuery();
+        }
+    }
+
     // ---------------- helpers ----------------
 
     private Microsoft.Data.Sqlite.SqliteConnection Open()

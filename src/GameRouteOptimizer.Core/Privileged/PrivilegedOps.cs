@@ -11,16 +11,22 @@ public enum PrivilegedOpKind
     UninstallWireGuardTunnel,
     QueryWireGuardTunnel,
 
+    // Espera (dentro del proceso elevado) a que la interfaz del túnel esté operativa.
+    WaitWireGuardTunnel,
+
     // Rutas y DNS.
     ApplyRoutes,
     RestoreRoutes,
     SetInterfaceDns,
     RestoreInterfaceDns,
 
-    // Kill switch (firewall por interfaz).
+    // Kill switch (firewall: bloqueo de salida por defecto + excepciones del túnel/endpoint).
     KillSwitchEnable,
     KillSwitchDisable,
     KillSwitchStatus,
+
+    // Secuencia de operaciones en UNA sola elevación (evita un aviso UAC por paso).
+    Sequence,
 
     // Utilidades.
     PingProbe, // probe ICMP con bajo nivel (no usado en v1; reservado)
@@ -78,6 +84,18 @@ public sealed class WireGuardTunnelPayload
 
     /// <summary>Nombre lógico del túnel (nombre del servicio WireGuard).</summary>
     public string? TunnelName { get; set; }
+
+    /// <summary>Segundos máximos de espera (op WaitWireGuardTunnel; 0 = 25 por defecto).</summary>
+    public int TimeoutSeconds { get; set; }
+}
+
+/// <summary>
+/// Varias operaciones ejecutadas en una sola sesión elevada, en orden y deteniéndose en el
+/// primer fallo. Reduce los avisos UAC a uno por acción compuesta (activar/detener túnel).
+/// </summary>
+public sealed class SequencePayload
+{
+    public List<PrivilegedOp> Steps { get; set; } = new();
 }
 
 public sealed class RoutesPayload
@@ -102,6 +120,12 @@ public sealed class DnsPayload
 
 public sealed class KillSwitchPayload
 {
-    /// <summary>Interfaces que NO se bloquean (p. ej. el adaptador del túnel y loopback).</summary>
-    public List<string> AllowedInterfaceNames { get; set; } = new();
+    /// <summary>Interfaz del túnel que queda permitida (todo su tráfico).</summary>
+    public string? TunnelInterfaceName { get; set; }
+
+    /// <summary>IPs del endpoint del relay (el handshake de WireGuard sale por la interfaz física).</summary>
+    public List<string> EndpointIps { get; set; } = new();
+
+    /// <summary>Puerto UDP del endpoint del relay.</summary>
+    public int EndpointPort { get; set; }
 }

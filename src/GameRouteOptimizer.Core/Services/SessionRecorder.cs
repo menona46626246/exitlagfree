@@ -57,13 +57,13 @@ public sealed class SessionRecorder
         }
     }
 
-    public void SetRelay(SessionRecord session, RelayNode relay)
+    public void SetRelay(SessionRecord session, RelayNode relay, RouteMode mode)
     {
         lock (_gate)
         {
             session.RelayId = relay.Id;
             session.RelayName = relay.Name;
-            session.Mode = RouteMode.TunnelGameDestinations;
+            session.Mode = mode;
             _store.SaveSession(session);
             SessionUpdated?.Invoke(this, session);
         }

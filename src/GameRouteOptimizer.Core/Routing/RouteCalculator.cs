@@ -38,7 +38,8 @@ public static class RouteCalculator
         RouteMode mode,
         IEnumerable<string> destinationHosts,
         IEnumerable<string> resolvedDestinationIps,
-        string tunnelInterfaceName)
+        string tunnelInterfaceName,
+        IEnumerable<string>? dnsServerIps = null)
     {
         var plan = new RoutePlan();
 
@@ -91,6 +92,33 @@ public static class RouteCalculator
             plan.AllowedIps.Add(cidr);
             if (address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
             {
+                plan.RoutesToAdd.Add(new RoutePlanEntry { Prefix = cidr, InterfaceName = tunnelInterfaceName, Metric = 10 });
+                plan.RoutesToDeleteOnStop.Add(new RoutePlanEntry { Prefix = cidr, InterfaceName = tunnelInterfaceName });
+            }
+        }
+
+        // Servidores DNS a encaminar por el túnel (protección básica contra fugas DNS):
+        // solo IPv4 literales que no estén ya cubiertos por los destinos.
+        if (dnsServerIps is not null)
+        {
+            foreach (var entry in dnsServerIps.Select(s => s.Trim()).Where(s => s.Length > 0))
+            {
+                if (!IPAddress.TryParse(entry, out var dnsAddress) ||
+                    dnsAddress.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    plan.Warnings.Add(
+                        $"El servidor DNS «{entry}» no es una IP IPv4 válida; " +
+                        "no se puede encaminar por el túnel en esta versión.");
+                    continue;
+                }
+
+                var cidr = $"{entry}/32";
+                if (plan.AllowedIps.Contains(cidr))
+                {
+                    continue;
+                }
+
+                plan.AllowedIps.Add(cidr);
                 plan.RoutesToAdd.Add(new RoutePlanEntry { Prefix = cidr, InterfaceName = tunnelInterfaceName, Metric = 10 });
                 plan.RoutesToDeleteOnStop.Add(new RoutePlanEntry { Prefix = cidr, InterfaceName = tunnelInterfaceName });
             }
