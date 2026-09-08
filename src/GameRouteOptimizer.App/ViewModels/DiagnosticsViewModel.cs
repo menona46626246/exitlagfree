@@ -310,13 +310,13 @@ public sealed class DiagnosticsViewModel : SectionViewModel
                 sb.AppendLine("⚠ " + obs);
             }
 
-            var rows = new ObservableCollection<TraceHopRow>();
+            var hopRows = new ObservableCollection<TraceHopRow>();
             foreach (var hop in trace.Hops)
             {
-                rows.Add(new TraceHopRow(hop.Ttl, hop.Address ?? "*", hop.RttMs1, hop.RttMs2, hop.Timeouts));
+                hopRows.Add(new TraceHopRow(hop.Ttl, hop.Address ?? "*", hop.RttMs1, hop.RttMs2, hop.Timeouts));
             }
 
-            TraceHops = rows;
+            TraceHops = hopRows;
         }
 
         if (report.Recommendation is { } rec)
