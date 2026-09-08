@@ -1,0 +1,28 @@
+# Build
+bin/
+obj/
+out/
+artifacts/
+*.user
+*.suo
+.vs/
+
+# IDE
+.idea/
+*.swp
+
+# Logs & data local
+*.log
+logs/
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Releases locales
+release/
+dist/
