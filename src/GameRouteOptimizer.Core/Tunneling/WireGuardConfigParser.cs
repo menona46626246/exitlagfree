@@ -52,6 +52,13 @@ public static partial class WireGuardConfigParser
             if (line.StartsWith('[') && line.EndsWith(']'))
             {
                 section = line[1..^1].Trim().ToLowerInvariant();
+                if (section == "peer")
+                {
+                    // Un nuevo encabezado [Peer] inicia un peer nuevo; los campos posteriores
+                    // se aplican al último. (Se añade aquí, no por cada clave.)
+                    config.Peers.Add(new WireGuardPeer());
+                }
+
                 continue;
             }
 
@@ -71,7 +78,11 @@ public static partial class WireGuardConfigParser
                     ApplyInterfaceKey(config, key, value, result);
                     break;
                 case "peer":
-                    EnsurePeer(config);
+                    if (config.Peers.Count == 0)
+                    {
+                        EnsurePeer(config); // tolerancia: claves [Peer] sin encabezado previo
+                    }
+
                     ApplyPeerKey(config.Peers[^1], key, value, result);
                     break;
                 default:
