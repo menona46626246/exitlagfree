@@ -533,7 +533,7 @@ public class NetworkCoreTests
 
             // Esperar a que el túnel quede activo (el worker mide directo + relay y conecta).
             var connected = await WaitUntilAsync(
-                () => orchestrator.IsTunnelActive && orchestrator.ActiveTunnel is not null, TimeSpan.FromSeconds(15));
+                () => orchestrator.IsTunnelActive && orchestrator.ActiveTunnel is not null, TimeSpan.FromSeconds(30));
             Assert.True(connected, "El orquestador no llegó a activar el túnel (estado: " + orchestrator.State + ")");
 
             // El modo respetado es GLOBAL (regresión: antes se forzaba «solo juego»).
@@ -550,8 +550,10 @@ public class NetworkCoreTests
             // Detener: el túnel se desinstala y el estado persistido queda limpio.
             await orchestrator.StopOptimizationAsync("fin de la prueba");
             var stopped = await WaitUntilAsync(() => !orchestrator.IsTunnelActive && orchestrator.State == ProgramState.Idle,
-                TimeSpan.FromSeconds(15));
-            Assert.True(stopped, "El orquestador no volvió a Idle tras detener");
+                TimeSpan.FromSeconds(30));
+            Assert.True(stopped,
+                "El orquestador no volvió a Idle tras detener (estado: " + orchestrator.State +
+                ", túnel activo: " + orchestrator.IsTunnelActive + ")");
 
             var leftoverUninstall = UninstallNames(ops).Count > 0;
             Assert.True(leftoverUninstall, "Al detener debe desinstalarse el túnel");

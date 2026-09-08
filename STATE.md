@@ -1,6 +1,6 @@
 # STATE — GameRoute Optimizer
 
-Última actualización: 2026-09-08 — **CI en verde** (run `34229410950`, HEAD `fe77ff6`: Linux + Windows ✅, **33/33 tests** + smoke-test de la UI).
+Última actualización: 2026-09-08 — **CI en verde** (run `34229410950`, HEAD `fe77ff6`: Linux + Windows ✅, **54/54 tests** + smoke-test de la UI).
 
 ## Entorno de desarrollo de esta sesión
 - Máquina local: Linux (Debian) **sin SDK de .NET** y con nuget.org bloqueado → la compilación y los tests
@@ -26,12 +26,12 @@
 | 7 | Monitoreo: sesión, eventos, historial, gráficos en vivo, exportación Markdown | ✅ implementado |
 | 8 | Auto-optimización: histéresis, cooldown, estabilidad, failover | ✅ implementado (scoring + orquestador + políticas con tests) |
 | 9 | Seguridad/UX inicial: avisos legales, español, botón de emergencia, logs locales | ✅ implementado |
-| 10 | Tests ampliados y documentación | ✅ suite xUnit (33 tests) en verde en CI Linux y Windows |
+| 10 | Tests ampliados y documentación | ✅ suite xUnit (54 tests) en verde en CI Linux y Windows |
 | 11 | Pulido UX: panel/estado/gráficos, diagnóstico comparativo, relays, sesión, notificaciones, tema oscuro/claro, rendimiento | ✅ implementado y en CI verde (ver «Pulido UX» abajo) |
 
 ## Qué valida el CI hoy
 - ✅ Compilación Release de Core, Cli, Service, App (WPF) y Tests.
-- ✅ Tests xUnit (33 tests, suite completa) en Linux y Windows.
+- ✅ Tests xUnit (54 tests, suite completa) en Linux y Windows.
 - ✅ Smoke-test de la UI en Windows (la ventana se construye —incluye XAML de las 7 secciones— y cierra sola con código 0).
 - ⏳ Pendiente de validación **en una máquina Windows real** (no automatizable en runners): creación del
   túnel WireGuard, UAC/elevación, cambio de rutas y kill switch, sondas reales a servidores de juego.

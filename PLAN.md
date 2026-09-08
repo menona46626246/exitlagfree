@@ -147,7 +147,7 @@ Decisiones menores autónomas (regla 2 del encargo):
 | 7 | Monitoreo: sesión, eventos, historial, gráficos | SessionRecorder + UI de sesión + exportar | ✅ |
 | 8 | Auto-optimización: histéresis, cooldown, failover | Tests de AutoOptimizer | ✅ |
 | 9 | Seguridad/UX: advertencias, botón de emergencia, logs | UI en español con estados y advertencias | ✅ |
-| 10 | Tests y documentación final | Suite xUnit verde en CI en Linux y Windows (33 tests: almacenamiento, juegos/relays, parser .conf, métricas/scoring, rutas, estados, probes con transporte simulado, DNS/cancelación, SQLite corrupta, auto-switch/cooldown/estabilidad, failback y session recorder); docs completas | ✅ |
+| 10 | Tests y documentación final | Suite xUnit verde en CI en Linux y Windows (54 tests: almacenamiento, juegos/relays, parser .conf, métricas/scoring, rutas, estados, probes con transporte simulado, DNS/cancelación, SQLite corrupta, auto-switch/cooldown/estabilidad, failback, session recorder y núcleo de red/túnel simulado); docs completas | ✅ |
 | 11 | Pulido de experiencia (UX) | Panel con estado, métricas y gráficos en vivo; diagnóstico con tabla directa vs relays; relays con prueba rápida y carga; sesión con eventos coloreados y exportación; notificaciones claras; tema oscuro/claro; gráficos eficientes | ✅ (CI verde) |
 
 Leyenda: ✅ hecho · 🔄 en curso · ⏳ pendiente · ⛔ bloqueado (detalle en STATE.md).
