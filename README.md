@@ -28,6 +28,27 @@ Sin cuentas, sin nube, sin telemetría: todo corre en tu máquina.
   el portable.
 - [WireGuard](https://www.wireguard.com/install/) instalado **solo** si quieres el modo túnel (opcional).
 
+## Guía de uso (resumen)
+
+1. **Juegos**: crea tu perfil (nombre + ejecutable) y añade al menos un servidor objetivo (dominio/IP +
+   puertos) en la sección *Juegos*. Guarda.
+2. **Relays**: importa tu propio `.conf` de WireGuard o crea un relay con su endpoint y clave pública.
+   Usa *Probar* para medirlo; la clave privada se guarda cifrada con DPAPI y nunca se exporta.
+3. **Diagnóstico** (sin túnel): mide ruta directa vs relays y traza la ruta. La tabla de comparación te
+   dice, con las mismas sondas, si algún relay es realmente mejor.
+4. **Panel principal**: elige el juego y pulsa **Optimizar**. El programa mide, compara y:
+   - si el modo es *ruta directa*: monitorea y te avisa solo si un relay mejora de forma clara;
+   - si el modo usa túnel: pide confirmación (o cambia solo si el auto-switch está activado con
+     histéresis, estabilidad y cooldown) y crea el túnel WireGuard.
+5. **Sesión**: eventos en vivo (cambios de ruta, avisos, errores), historial y exportación del informe
+   Markdown.
+6. **Configuración**: tema **oscuro/claro** (se aplica al guardar), sondas, auto-switch y kill switch
+   (requiere administrador; lee su aviso antes de activarlo).
+7. Ante cualquier problema con la red: botón **🛑 Detener y restaurar red**, siempre visible.
+
+Más detalle y solución de problemas en `docs/` (guías de juegos, relays y túnel). Las métricas son
+estimaciones honestas: lee `docs/limitaciones.md` para saber qué puede y qué no puede hacer.
+
 ## Compilar y probar
 
 ```powershell
