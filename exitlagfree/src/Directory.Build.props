@@ -1,0 +1,21 @@
+# GameRoute Optimizer — propiedades comunes de compilación (se aplican a todos los proyectos de src/)
+<Project>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <NoWarn>$(NoWarn);CA1848;CA1031;CA2007;CA1707;CA2227;CA1054;CA1056;CA1303;CA1305;CA1310;CA1002</NoWarn>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <SatelliteResourceLanguages>es</SatelliteResourceLanguages>
+    <Version>0.9.0</Version>
+    <InformationalVersion>0.9.0</InformationalVersion>
+    <Product>GameRoute Optimizer</Product>
+    <Company>GameRoute Optimizer</Company>
+    <Authors>GameRoute Optimizer</Authors>
+    <Copyright>Copyright (c) 2026 GameRoute Optimizer contributors</Copyright>
+    <RepositoryUrl>https://github.com/menona46626246/exitlagfree</RepositoryUrl>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+  </PropertyGroup>
+</Project>
