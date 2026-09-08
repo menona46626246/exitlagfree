@@ -595,6 +595,11 @@ public sealed class OptimizationOrchestrator : IDisposable
                 _state.TryTransition(ProgramState.Monitoring, "monitoreo en ruta directa");
                 AddSessionEvent(SessionEventCategory.Info,
                     "Optimización en modo directo: se monitorea la calidad para recomendar relays si mejoran la ruta.");
+                if (mode == RouteMode.Direct)
+                {
+                    _notifications.Info("Optimización en curso (ruta directa)",
+                        "Sin túnel: se mide tu ruta y se avisará solo si un relay ofrece una mejora clara.");
+                }
             }
 
             // 5) Bucle de monitoreo.
@@ -703,6 +708,15 @@ public sealed class OptimizationOrchestrator : IDisposable
             AddSessionEvent(SessionEventCategory.Warning, msg);
         }
 
+        if (!_tunnel.OpsAvailable)
+        {
+            var msg = "Se requieren privilegios de administrador para crear el túnel WireGuard y la " +
+                      "elevación (UAC) no está disponible en esta configuración. Revisa que el helper " +
+                      "GameRouteOptimizer.Cli acompañe a la aplicación.";
+            _notifications.Error("Privilegios requeridos", msg);
+            throw new InvalidOperationException(msg);
+        }
+
         _notifications.Info("Conectando túnel",
             $"Se solicitará permiso de administrador una vez para crear el túnel con «{relay.Name}».");
 
@@ -791,6 +805,9 @@ public sealed class OptimizationOrchestrator : IDisposable
         _lastSwitchUtc = DateTimeOffset.UtcNow;
         AddSessionEvent(SessionEventCategory.RouteChange,
             $"Túnel activo vía «{relay.Name}» (modo {ModeDescription(mode)}).");
+        _notifications.Info("Optimización activa",
+            $"El túnel WireGuard está activo por «{relay.Name}» ({ModeDescription(mode)}). " +
+            "Las métricas en vivo confirmarán si la ruta es realmente mejor.");
         PublishMetrics();
     }
 

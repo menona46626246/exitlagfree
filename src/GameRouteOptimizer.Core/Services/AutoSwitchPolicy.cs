@@ -27,14 +27,6 @@ public static class AutoSwitchPolicy
     /// <param name="lastSwitchUtc">Último cambio de ruta (null = nunca).</param>
     /// <param name="sustainedTicks">Veces consecutivas que la recomendación pide el mismo cambio.</param>
     /// <param name="settings">Configuración de auto-switch.</param>
-    /// <summary>
-    /// Decide si conviene cambiar a la ruta ganadora.
-    /// </summary>
-    /// <param name="recommendation">Salida del ScoreEngine (una pasada de medición).</param>
-    /// <param name="now">Instante actual.</param>
-    /// <param name="lastSwitchUtc">Último cambio de ruta (null = nunca).</param>
-    /// <param name="sustainedTicks">Veces consecutivas que la recomendación pide el mismo cambio.</param>
-    /// <param name="settings">Configuración de auto-switch.</param>
     /// <param name="healthCheckIntervalSeconds">Cada cuántos segundos se evalúa (para la ventana de estabilidad).</param>
     public static SwitchDecision ShouldSwitch(
         ScoringOutput recommendation,

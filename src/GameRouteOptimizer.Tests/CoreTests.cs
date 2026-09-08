@@ -492,6 +492,246 @@ public class CoreTests
         Assert.Equal(0, fake.IcmpCalls);
     }
 
+    // ================= auto-switch: cooldown, estabilidad y failback =================
+
+    private static ScoringOutput WinningRecommendation(string winnerId, string? currentId) => new()
+    {
+        WinnerId = winnerId,
+        CurrentId = currentId,
+        ChangeRecommended = true,
+        ExplanationEs = "Mejor ruta disponible.",
+    };
+
+    private static AutoSwitchSettings AutoOn() => new()
+    {
+        Enabled = true,
+        MinImprovementMs = 10,
+        CooldownSeconds = 120,
+        StabilityWindowSeconds = 30,
+    };
+
+    [Fact]
+    public void AutoSwitchPolicy_DesactivadoNuncaCambiaNiEspera()
+    {
+        var settings = new AutoSwitchSettings { Enabled = false };
+        var decision = AutoSwitchPolicy.ShouldSwitch(
+            WinningRecommendation("relay:a", "direct"),
+            DateTimeOffset.UtcNow,
+            lastSwitchUtc: null,
+            sustainedTicks: 99,
+            settings);
+        Assert.Equal(SwitchDecisionKind.NoChange, decision.Kind);
+        Assert.Contains("desactivado", decision.ReasonEs, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void AutoSwitchPolicy_CooldownEsperaEntreCambiosConsecutivos()
+    {
+        var now = DateTimeOffset.UtcNow;
+        // Cambió hace 30 s y el cooldown es de 120 s → debe esperar, aunque la mejora sea estable.
+        var decision = AutoSwitchPolicy.ShouldSwitch(
+            WinningRecommendation("relay:a", "direct"),
+            now,
+            lastSwitchUtc: now.AddSeconds(-30),
+            sustainedTicks: 10,
+            AutoOn());
+        Assert.Equal(SwitchDecisionKind.WaitCooldown, decision.Kind);
+        Assert.InRange(decision.WaitSeconds, 89, 91);
+    }
+
+    [Fact]
+    public void AutoSwitchPolicy_ExigeVentanaDeEstabilidadSostenida()
+    {
+        // 30 s de estabilidad con comprobaciones cada 10 s → 3 ticks consecutivos.
+        var settings = AutoOn();
+        var now = DateTimeOffset.UtcNow;
+        var early = AutoSwitchPolicy.ShouldSwitch(
+            WinningRecommendation("relay:a", "direct"), now, lastSwitchUtc: null, sustainedTicks: 2, settings);
+        Assert.Equal(SwitchDecisionKind.WaitStability, early.Kind);
+
+        var ready = AutoSwitchPolicy.ShouldSwitch(
+            WinningRecommendation("relay:a", "direct"), now, lastSwitchUtc: null, sustainedTicks: 3, settings);
+        Assert.Equal(SwitchDecisionKind.SwitchToWinner, ready.Kind);
+    }
+
+    [Fact]
+    public void FailbackPolicy_TunelCaidoSoloTrasNComprobacionesConsecutivas()
+    {
+        var settings = AutoOn();
+        // 2 fallos < 3 exigidos → aún no hay failback.
+        var notYet = FailbackPolicy.ShouldFailback(
+            tunnelHealthy: false, targetViaTunnelOk: true,
+            consecutiveTunnelFailures: 2, consecutiveTargetFailures: 0,
+            directSummary: null, optimizedSummary: null, settings, DateTimeOffset.UtcNow);
+        Assert.Equal(FailbackKind.None, notYet.Kind);
+
+        // 3 fallos → failback de seguridad.
+        var now = FailbackPolicy.ShouldFailback(
+            tunnelHealthy: false, targetViaTunnelOk: true,
+            consecutiveTunnelFailures: 3, consecutiveTargetFailures: 0,
+            directSummary: null, optimizedSummary: null, settings, DateTimeOffset.UtcNow);
+        Assert.Equal(FailbackKind.TunnelDown, now.Kind);
+        Assert.Contains("dejó de responder", now.ReasonEs, StringComparison.OrdinalIgnoreCase);
+
+        // El destino sin respuesta vía túnel también dispara failback tras el mismo umbral.
+        var targetDown = FailbackPolicy.ShouldFailback(
+            tunnelHealthy: true, targetViaTunnelOk: false,
+            consecutiveTunnelFailures: 0, consecutiveTargetFailures: 3,
+            directSummary: null, optimizedSummary: null, settings, DateTimeOffset.UtcNow);
+        Assert.Equal(FailbackKind.TunnelDown, targetDown.Kind);
+    }
+
+    [Fact]
+    public void FailbackPolicy_ConAutoFailbackApagadoLaCaidaSigueForzandoVolver()
+    {
+        var settings = AutoOn();
+        settings.AutoFailback = false;
+        // Sano: sin fallos no se decide nada (aunque el auto-failback esté apagado).
+        var healthy = FailbackPolicy.ShouldFailback(
+            tunnelHealthy: true, targetViaTunnelOk: true,
+            consecutiveTunnelFailures: 0, consecutiveTargetFailures: 0,
+            directSummary: null, optimizedSummary: null, settings, DateTimeOffset.UtcNow);
+        Assert.Equal(FailbackKind.None, healthy.Kind);
+
+        // Caído: aunque el usuario desactivó el auto-failback, un túnel muerto no puede seguir.
+        var down = FailbackPolicy.ShouldFailback(
+            tunnelHealthy: false, targetViaTunnelOk: true,
+            consecutiveTunnelFailures: 1, consecutiveTargetFailures: 0,
+            directSummary: null, optimizedSummary: null, settings, DateTimeOffset.UtcNow);
+        Assert.Equal(FailbackKind.TunnelDown, down.Kind);
+    }
+
+    [Fact]
+    public void FailbackPolicy_TunelQueEmpeoraClaramenteVuelveADirecto()
+    {
+        // 40 ms peor y un 67 % más lento que la directa → empeoramiento claro y sostenido.
+        var decision = FailbackPolicy.ShouldFailback(
+            tunnelHealthy: true, targetViaTunnelOk: true,
+            consecutiveTunnelFailures: 0, consecutiveTargetFailures: 0,
+            directSummary: Summary(60, 0, 3), optimizedSummary: Summary(100, 0, 4),
+            AutoOn(), DateTimeOffset.UtcNow);
+        Assert.Equal(FailbackKind.TunnelWorse, decision.Kind);
+        Assert.Contains("empeora", decision.ReasonEs, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void FailbackPolicy_EmpeoramientoLeveNoProvocaFailback()
+    {
+        // +10 ms y +16 %: dentro de la histéresis (2×mejora mínima o 15 ms) → se mantiene el túnel.
+        var decision = FailbackPolicy.ShouldFailback(
+            tunnelHealthy: true, targetViaTunnelOk: true,
+            consecutiveTunnelFailures: 0, consecutiveTargetFailures: 0,
+            directSummary: Summary(60, 0, 3), optimizedSummary: Summary(70, 0, 4),
+            AutoOn(), DateTimeOffset.UtcNow);
+        Assert.Equal(FailbackKind.None, decision.Kind);
+    }
+
+    // ================= session recorder: eventos, mejora y aprendizaje =================
+
+    [Fact]
+    public void SessionRecorder_RegistraSesionConEventosYMejora()
+    {
+        var store = NewStore(out var dbPath);
+        try
+        {
+            var updates = 0;
+            var recorder = new SessionRecorder(store);
+            recorder.SessionUpdated += (_, _) => updates++;
+
+            var session = recorder.StartSession("Juego A", "p1", "srv.ejemplo.com", RouteMode.TunnelGameDestinations);
+            Assert.Contains(recorder.RecentSessions(), s => s.Id == session.Id);
+            recorder.AppendEvent(session, SessionEventCategory.RouteChange, "Cambio a relay.", "Active");
+            recorder.SetDirectMetrics(session, Summary(50, 0, 4));
+            recorder.SetOptimizedMetrics(session, Summary(30, 0, 3));
+            Assert.Equal(20.0, session.EstimatedImprovementMs!.Value, 3);
+            recorder.EndSession(session, "detenida por el usuario");
+            Assert.NotNull(session.EndedUtc);
+            Assert.Equal("detenida por el usuario", session.EndedReason);
+
+            var loaded = store.LoadSessions(10).First(s => s.Id == session.Id);
+            Assert.Equal(3, loaded.Events.Count); // iniciada + cambio de ruta + fin
+            Assert.Contains(loaded.Events, e => e.Category == SessionEventCategory.RouteChange);
+            Assert.Equal(20.0, loaded.EstimatedImprovementMs!.Value, 3);
+            Assert.True(updates >= 4, "SessionUpdated debe notificar cada persistencia.");
+        }
+        finally
+        {
+            store.Dispose();
+            DeleteDb(dbPath);
+        }
+    }
+
+    [Fact]
+    public void SessionRecorder_AprendeTramoRelayAlCerrarSesionConTunel()
+    {
+        var store = NewStore(out var dbPath);
+        try
+        {
+            var recorder = new SessionRecorder(store);
+            var relay = new RelayNode { Id = "relay-1", Name = "Relay Madrid", Enabled = true };
+
+            // Sesión 1: directa 100 ms, vía túnel 60 ms → tramo aprendido 20 ms.
+            var s1 = recorder.StartSession("Juego A", "p1", "srv.ejemplo.com", RouteMode.TunnelGameDestinations);
+            recorder.SetRelay(s1, relay, RouteMode.TunnelGameDestinations);
+            recorder.SetDirectMetrics(s1, Summary(100, 0, 5));
+            recorder.SetOptimizedMetrics(s1, Summary(60, 0, 4));
+            recorder.EndSession(s1, "fin");
+
+            var learnings = store.LoadLearnings();
+            var l1 = Assert.Single(learnings);
+            Assert.Equal("relay-1", l1.RelayId);
+            Assert.Equal("srv.ejemplo.com", l1.Region);
+            Assert.Equal(1, l1.Samples);
+            Assert.Equal(20.0, l1.TailAvgMs, 3);
+
+            // Sesión 2 con el mismo relay y región: el aprendizaje promedia las muestras.
+            var s2 = recorder.StartSession("Juego A", "p1", "srv.ejemplo.com", RouteMode.TunnelGameDestinations);
+            recorder.SetRelay(s2, relay, RouteMode.TunnelGameDestinations);
+            recorder.SetDirectMetrics(s2, Summary(60, 0, 5));
+            recorder.SetOptimizedMetrics(s2, Summary(40, 0, 4));
+            recorder.EndSession(s2, "fin");
+
+            var l2 = Assert.Single(store.LoadLearnings());
+            Assert.Equal(2, l2.Samples);
+            Assert.Equal(20.0, l2.TailAvgMs, 3);
+        }
+        finally
+        {
+            store.Dispose();
+            DeleteDb(dbPath);
+        }
+    }
+
+    [Fact]
+    public void SessionRecorder_ExportMarkdownDocumentaLaSesion()
+    {
+        var store = NewStore(out var dbPath);
+        try
+        {
+            var recorder = new SessionRecorder(store);
+            var session = recorder.StartSession("Juego B", "p2", "juego.ejemplo.com", RouteMode.TunnelGlobal);
+            session.AddEvent(SessionEventCategory.RouteChange, "Túnel activo vía «Relay|Madrid».");
+            recorder.SetDirectMetrics(session, Summary(120, 0, 6));
+            recorder.SetOptimizedMetrics(session, Summary(85, 0, 5));
+            recorder.EndSession(session, "el juego se cerró");
+
+            var markdown = recorder.ExportSessionMarkdown(session);
+            Assert.Contains("# Informe de sesión", markdown, StringComparison.Ordinal);
+            Assert.Contains("Juego B", markdown, StringComparison.Ordinal);
+            Assert.Contains("juego.ejemplo.com", markdown, StringComparison.Ordinal);
+            Assert.Contains("| Latencia media |", markdown, StringComparison.Ordinal);
+            Assert.Contains("mejoró la latencia media en 35", markdown, StringComparison.Ordinal);
+            // Las barras del mensaje se escapan para no romper la tabla de eventos.
+            Assert.Contains("Relay/Madrid", markdown, StringComparison.Ordinal);
+            Assert.DoesNotContain("el juego se cerró", markdown.Split("## Eventos")[0], StringComparison.Ordinal);
+        }
+        finally
+        {
+            store.Dispose();
+            DeleteDb(dbPath);
+        }
+    }
+
     /// <summary>Resolver determinista sin DNS para tests del motor de probes.</summary>
     private sealed class EmptyResolver : EndpointResolver
     {
