@@ -1,6 +1,6 @@
 # STATE — GameRoute Optimizer
 
-Última actualización: 2026-09-08 — **CI en verde** (run `34215593479`, commits `f74c9b5` → `0d723ee`).
+Última actualización: 2026-09-08 — **CI en verde** (run `34217216735`, commit `a3a9e2f`: Linux + Windows ✅, 12/12 tests).
 
 ## Entorno de desarrollo de esta sesión
 - Máquina local: Linux (Debian) **sin SDK de .NET** y con nuget.org bloqueado → la compilación y los tests
@@ -25,7 +25,7 @@
 | 7 | Monitoreo: sesión, eventos, historial, gráficos en vivo, exportación Markdown | ✅ implementado |
 | 8 | Auto-optimización: histéresis, cooldown, estabilidad, failover | ✅ implementado (scoring + orquestador) |
 | 9 | Seguridad/UX final: avisos legales, modo oscuro español, botón de emergencia, logs locales | ✅ implementado |
-| 10 | Tests ampliados y documentación final | 🔄 tests básicos en verde; ampliar cobertura; docs completas |
+| 10 | Tests ampliados y documentación final | ✅ suite xUnit (12 tests: almacenamiento, juegos/relays, parser .conf, métricas, scoring, rutas, estados) en verde en CI; docs, ejemplos, scripts e instalador completos. Pendiente: validación en máquina Windows real (túnel/UAC/rutas/kill switch). |
 
 ## Qué valida el CI hoy
 - ✅ Compilación Release de Core, Cli, Service, App (WPF) y Tests.

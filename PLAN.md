@@ -137,7 +137,7 @@ Decisiones menores autónomas (regla 2 del encargo):
 | 7 | Monitoreo: sesión, eventos, historial, gráficos | SessionRecorder + UI de sesión + exportar | ✅ |
 | 8 | Auto-optimización: histéresis, cooldown, failover | Tests de AutoOptimizer | ✅ |
 | 9 | Seguridad/UX: advertencias, botón de emergencia, logs | UI en español con estados y advertencias | ✅ |
-| 10 | Tests y documentación final | Suite xUnit verde en CI; docs completas | 🔄 |
+| 10 | Tests y documentación final | Suite xUnit verde en CI (12 tests); docs completas | ✅ |
 
 Leyenda: ✅ hecho · 🔄 en curso · ⏳ pendiente · ⛔ bloqueado (detalle en STATE.md).
 
