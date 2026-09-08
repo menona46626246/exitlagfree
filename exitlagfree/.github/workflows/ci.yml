@@ -1,0 +1,97 @@
+# CI de GameRoute Optimizer: compilación, tests y smoke-test de UI en Windows + núcleo en Linux.
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: '1'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: '1'
+
+jobs:
+  windows:
+    name: Windows (build + tests + UI)
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: dotnet --info
+        run: dotnet --info
+
+      - name: Restaurar
+        run: dotnet restore src/GameRouteOptimizer.sln
+
+      - name: Compilar (Release)
+        run: dotnet build src/GameRouteOptimizer.sln -c Release --no-restore
+
+      - name: Ejecutar tests (xUnit)
+        run: >
+          dotnet test src/GameRouteOptimizer.sln -c Release --no-build
+          --logger "trx;LogFileName=results.trx"
+          --results-directory "$env:RUNNER_TEMP\testresults"
+
+      - name: Verificar formato (dotnet format)
+        run: dotnet format src/GameRouteOptimizer.sln --verify-no-changes --no-restore
+        continue-on-error: true
+
+      - name: Smoke-test de la UI (abre la ventana y sale sola)
+        run: |
+          $exe = "src/GameRouteOptimizer.App/bin/Release/net8.0-windows/GameRouteOptimizer.App.exe"
+          if (-not (Test-Path $exe)) { throw "No se encontró el ejecutable: $exe" }
+          $p = Start-Process -FilePath $exe -ArgumentList "--smoke-test" -PassThru
+          if (-not $p.WaitForExit(120000)) { $p.Kill(); throw "Timeout: la UI no terminó el smoke-test" }
+          Write-Host "Código de salida del smoke-test: $($p.ExitCode)"
+          if ($p.ExitCode -ne 0) { throw "El smoke-test de la UI falló (código $($p.ExitCode))" }
+
+      - name: Subir resultados de tests (trx)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-windows
+          path: ${{ runner.temp }}/testresults
+
+      - name: Empaquetar portable (zip)
+        if: success()
+        run: |
+          $dir = "src/GameRouteOptimizer.App/bin/Release/net8.0-windows"
+          Compress-Archive -Path "$dir\*" -DestinationPath "$env:RUNNER_TEMP\GameRouteOptimizer-portable.zip"
+          Write-Host "Portable listo"
+
+      - name: Subir portable
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: GameRouteOptimizer-portable-win-x64
+          path: ${{ runner.temp }}/GameRouteOptimizer-portable.zip
+
+  linux-core:
+    name: Linux (núcleo + tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Compilar núcleo, CLI y servicio (net8.0 multiplataforma)
+        run: |
+          dotnet build src/GameRouteOptimizer.Core/GameRouteOptimizer.Core.csproj -c Release
+          dotnet build src/GameRouteOptimizer.Cli/GameRouteOptimizer.Cli.csproj -c Release
+          dotnet build src/GameRouteOptimizer.Service/GameRouteOptimizer.Service.csproj -c Release
+
+      - name: Tests del núcleo en Linux
+        run: dotnet test src/GameRouteOptimizer.Tests/GameRouteOptimizer.Tests.csproj -c Release
