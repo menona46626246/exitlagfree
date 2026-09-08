@@ -229,7 +229,7 @@ public class CoreTests
             ProbeReply.Ok(22),
             ProbeReply.Ok(25),
             ProbeReply.Ok(24),
-            ProbeReply.Fail(ProbeFailureReason.Timeout),
+            ProbeReply.Fail(GameRouteOptimizer.Core.Probing.ProbeFailureReason.Timeout),
         };
         var summary = ProbeSummaryCalculator.Compute(
             "server.ejemplo.com", ProbeKind.Icmp, attempts,
