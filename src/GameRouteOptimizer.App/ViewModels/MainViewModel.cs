@@ -13,7 +13,7 @@ public sealed class MainViewModel : ObservableObjectBase
     private readonly AppServices _app;
     private string _stateLabel = "Inactivo";
     private string _stateDetail = "Listo. Añade un juego y un relay para empezar.";
-    private Brush _stateBrush = GoodBrush;
+    private Brush _stateBrush = new SolidColorBrush(Color.FromRgb(0x8F, 0xA0, 0xB0));
     private string _currentGameLabel = "—";
     private FrameworkElement? _content;
     private bool _busy;

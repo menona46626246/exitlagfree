@@ -53,6 +53,16 @@ public sealed class InvertBoolToVisibilityConverter : IValueConverter
         value is not System.Windows.Visibility.Visible;
 }
 
+/// <summary>null → Collapsed (oculta campos opcionales, p. ej. la carga estimada).</summary>
+public sealed class NullToCollapsedConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        value is null ? System.Windows.Visibility.Collapsed : System.Windows.Visibility.Visible;
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+        throw new NotSupportedException();
+}
+
 /// <summary>RouteMode → índice de ComboBox (0=directa, 1=global, 2=solo juego).</summary>
 public sealed class RouteModeToIndexConverter : IValueConverter
 {

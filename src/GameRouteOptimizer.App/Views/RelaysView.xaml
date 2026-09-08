@@ -41,8 +41,18 @@
                                 <TextBlock Style="{StaticResource Muted}">
                                     <Run Text="{Binding Endpoint, Mode=OneWay}" /><Run Text=" · " /><Run Text="{Binding Country, Mode=OneWay}" /><Run Text=" " /><Run Text="{Binding City, Mode=OneWay}" />
                                 </TextBlock>
-                                <TextBlock Style="{StaticResource Muted}">
-                                    <Run Text="latencia: " /><Run Text="{Binding Health.AvgLatencyMs, Converter={StaticResource MsDisplay}}" />
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource Muted}" VerticalAlignment="Center">
+                                        <Run Text="latencia: " /><Run Text="{Binding Health.AvgLatencyMs, Converter={StaticResource MsDisplay}}" />
+                                        <Run Text=" · jitter: " /><Run Text="{Binding Health.JitterMs, Converter={StaticResource MsDisplay}}" />
+                                        <Run Text=" · pérdida: " /><Run Text="{Binding Health.LossPercent, Converter={StaticResource PercentDisplay}}" />
+                                    </TextBlock>
+                                    <Button Content="Probar" Padding="8,1" FontSize="11" Margin="10,0,0,0" VerticalAlignment="Center"
+                                            Command="{Binding DataContext.MeasureCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" ToolTip="Prueba rápida de latencia a este relay" />
+                                </StackPanel>
+                                <TextBlock Style="{StaticResource Muted}" Visibility="{Binding EstimatedLoadPercent, Converter={StaticResource NullToCollapsed}}">
+                                    <Run Text="carga estimada: " /><Run Text="{Binding EstimatedLoadPercent, StringFormat={}{0:F0} %}" />
                                 </TextBlock>
                             </StackPanel>
                         </DataTemplate>

@@ -11,6 +11,7 @@
 
             <conv:BoolToVisibilityConverter x:Key="BoolToVisibility" />
             <conv:InvertBoolToVisibilityConverter x:Key="InvertBoolToVisibility" />
+            <conv:NullToCollapsedConverter x:Key="NullToCollapsed" />
             <conv:RouteModeToIndexConverter x:Key="RouteModeIndex" />
             <conv:MsDisplayConverter x:Key="MsDisplay" />
             <conv:PercentDisplayConverter x:Key="PercentDisplay" />

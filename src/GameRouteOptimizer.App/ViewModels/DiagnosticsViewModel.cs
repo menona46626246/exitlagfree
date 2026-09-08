@@ -20,6 +20,8 @@ public sealed class DiagnosticsViewModel : SectionViewModel
     private ObservableCollection<TraceHopRow> _traceHops = new();
     private string _recommendation = string.Empty;
 
+    public ObservableCollection<MetricRow> MetricRows { get; } = new();
+
     public DiagnosticsViewModel(AppServices app) : base(app)
     {
         App.Games.ProfilesChanged += (_, _) => RunOnUi(ReloadProfiles);
@@ -135,6 +137,7 @@ public sealed class DiagnosticsViewModel : SectionViewModel
         IsBusy = true;
         Output = "Ejecutando diagnóstico…";
         TraceHops = new ObservableCollection<TraceHopRow>();
+        MetricRows.Clear();
         Recommendation = string.Empty;
         try
         {
@@ -188,6 +191,7 @@ public sealed class DiagnosticsViewModel : SectionViewModel
             using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
             var result = await engine.ProbeAsync(spec, Deep, cts.Token);
             Output = FormatSummary(result.Summary);
+            SetRows(new[] { MetricRow.FromSummary(spec.Label, result.Summary) });
         }
         catch (Exception ex)
         {
@@ -210,6 +214,7 @@ public sealed class DiagnosticsViewModel : SectionViewModel
         }
 
         IsBusy = true;
+        MetricRows.Clear();
         try
         {
             using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
@@ -251,8 +256,34 @@ public sealed class DiagnosticsViewModel : SectionViewModel
         return port is > 0 and <= 65535 ? port : 443;
     }
 
+    /// <summary>Fija la tabla de comparación directa vs relays (vacía si no hay datos).</summary>
+    private void SetRows(IEnumerable<MetricRow> rows)
+    {
+        MetricRows.Clear();
+        foreach (var row in rows)
+        {
+            MetricRows.Add(row);
+        }
+    }
+
     private void OnDiagnosticsCompleted(DiagnosticsReport report)
     {
+        // Tabla comparativa directa vs relays, con una fila por candidato.
+        var rows = new List<MetricRow>();
+        if (report.Direct is { } direct)
+        {
+            rows.Add(MetricRow.FromSummary("Ruta directa", direct));
+        }
+
+        foreach (var m in report.RelayMeasurements)
+        {
+            rows.Add(m.Endpoint is null
+                ? MetricRow.NoData("Relay " + m.RelayName, "sin datos")
+                : MetricRow.FromSummary("Relay " + m.RelayName, m.Endpoint));
+        }
+
+        SetRows(rows);
+
         var sb = new System.Text.StringBuilder();
         sb.AppendLine("=== DIAGNÓSTICO COMPLETADO ===");
         sb.AppendLine($"Juego: {report.GameName} → {report.TargetDisplay}");
@@ -372,4 +403,41 @@ public sealed class TraceHopRow
     public string Rtt1 { get; }
     public string Rtt2 { get; }
     public int Timeouts { get; }
+}
+
+/// <summary>Fila de la tabla comparativa «directa vs relays» del diagnóstico.</summary>
+public sealed class MetricRow
+{
+    private MetricRow(string name, string latency, string loss, string jitter, string result)
+    {
+        Name = name;
+        Latency = latency;
+        Loss = loss;
+        Jitter = jitter;
+        Result = result;
+    }
+
+    public string Name { get; }
+    public string Latency { get; }
+    public string Loss { get; }
+    public string Jitter { get; }
+    public string Result { get; }
+
+    public static MetricRow FromSummary(string name, ProbeSummary s)
+    {
+        static string Ms(double? v) => v.HasValue ? $"{v:F1} ms" : "—";
+        static string Pct(double? v) => v.HasValue ? $"{v:F1} %" : "—";
+        var usable = s.Usable;
+        return new MetricRow(
+            name,
+            Ms(s.AvgMs),
+            Pct(s.LossPercent),
+            Ms(s.JitterMs),
+            usable
+                ? "✔ utilizable"
+                : "✖ sin respuesta");
+    }
+
+    public static MetricRow NoData(string name, string note) =>
+        new(name, "—", "—", "—", note);
 }

@@ -151,9 +151,11 @@ public sealed class RelaysViewModel : SectionViewModel
         return Task.CompletedTask;
     });
 
-    public Mvvm.AsyncRelayCommand MeasureCommand => new(async _ =>
+    public Mvvm.AsyncRelayCommand MeasureCommand => new(async parameter =>
     {
-        if (SelectedRelay is not { } relay || !relay.HasEndpoint)
+        // Prueba rápida: desde la fila de la lista (parámetro) o desde el editor.
+        var relay = parameter as RelayNode ?? SelectedRelay;
+        if (relay is null || !relay.HasEndpoint)
         {
             MessageBox.Show("Completa primero el endpoint del relay (host y puerto).",
                 "Probar relay", MessageBoxButton.OK, MessageBoxImage.Information);

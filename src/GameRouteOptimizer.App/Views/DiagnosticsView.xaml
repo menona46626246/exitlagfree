@@ -33,6 +33,50 @@
                 </StackPanel>
             </Border>
 
+            <!-- Comparación directa vs relays (tabla simple) -->
+            <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush2}"
+                    BorderThickness="1" CornerRadius="8" Padding="12" Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBlock Text="Comparación: ruta directa vs relays" FontWeight="SemiBold" Margin="0,0,0,4" />
+                    <TextBlock Style="{StaticResource Muted}" Margin="0,0,0,8"
+                               Text="Misma sonda, mismo destino: así se ve de un vistazo si un relay podría ayudarte (latencia menor y sin pérdida)." />
+                    <Grid Margin="0,0,0,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="80" />
+                            <ColumnDefinition Width="80" />
+                            <ColumnDefinition Width="80" />
+                            <ColumnDefinition Width="110" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Candidato" FontWeight="SemiBold" Style="{StaticResource Muted}" />
+                        <TextBlock Grid.Column="1" Text="Latencia" FontWeight="SemiBold" Style="{StaticResource Muted}" />
+                        <TextBlock Grid.Column="2" Text="Pérdida" FontWeight="SemiBold" Style="{StaticResource Muted}" />
+                        <TextBlock Grid.Column="3" Text="Jitter" FontWeight="SemiBold" Style="{StaticResource Muted}" />
+                        <TextBlock Grid.Column="4" Text="Resultado" FontWeight="SemiBold" Style="{StaticResource Muted}" />
+                    </Grid>
+                    <ItemsControl ItemsSource="{Binding MetricRows}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="80" />
+                                        <ColumnDefinition Width="80" />
+                                        <ColumnDefinition Width="80" />
+                                        <ColumnDefinition Width="110" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Latency}" FontFamily="Consolas" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Loss}" FontFamily="Consolas" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="3" Text="{Binding Jitter}" FontFamily="Consolas" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="4" Text="{Binding Result}" VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
