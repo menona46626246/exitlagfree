@@ -90,10 +90,30 @@ public sealed class DiagnosticsViewModel : SectionViewModel
         SelectedProfile = Profiles.FirstOrDefault(p => p.Id == selectedId) ?? Profiles.FirstOrDefault();
     }
 
-    private string ResolveHost() =>
-        string.IsNullOrWhiteSpace(Host) && SelectedProfile is { Targets.Count: > 0 }
-            ? SelectedProfile.Targets[0].DisplayHost
-            : Host.Trim();
+    private string ResolveHost()
+    {
+        if (!string.IsNullOrWhiteSpace(Host))
+        {
+            return Host.Trim();
+        }
+
+        if (SelectedProfile is { } profile)
+        {
+            // Primer objetivo utilizable (con dominio o IP), nunca un placeholder vacío.
+            foreach (var target in profile.Targets)
+            {
+                var host = !string.IsNullOrWhiteSpace(target.Domain)
+                    ? target.Domain!.Trim()
+                    : target.IpAddress?.Trim();
+                if (!string.IsNullOrWhiteSpace(host))
+                {
+                    return host;
+                }
+            }
+        }
+
+        return string.Empty;
+    }
 
     public Mvvm.AsyncRelayCommand RunProfileDiagnosticsCommand => new(async _ =>
     {
@@ -101,6 +121,14 @@ public sealed class DiagnosticsViewModel : SectionViewModel
         {
             MessageBox.Show("Selecciona un juego de la lista (o usa la prueba libre).",
                 "Diagnóstico", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var startProblem = OptimizationOrchestrator.FindStartProblem(profile);
+        if (startProblem.Length > 0)
+        {
+            MessageBox.Show(startProblem,
+                "No se pudo iniciar el diagnóstico", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 

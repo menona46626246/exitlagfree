@@ -34,9 +34,29 @@ public sealed class MainViewModel : ObservableObjectBase
         _app.Orchestrator.MetricsUpdated += (_, snapshot) =>
             _app.RunOnUi(() => OnMetrics(snapshot));
         _app.Orchestrator.SessionEventAdded += (_, _) => RefreshStatusFromState();
+        // Notificaciones del orquestador visibles para el usuario (barra de estado y
+        // cuadro de diálogo para errores).
+        _app.Notifications.NotificationAdded += (_, notification) =>
+            _app.RunOnUi(() => OnNotification(notification));
 
         _content = Dashboard.View;
         RefreshStatusFromState();
+    }
+
+    private void OnNotification(Core.Models.AppNotification notification)
+    {
+        StateDetail = notification.Level switch
+        {
+            Core.Models.EventLevel.Error => "⛔ " + notification.Title + ": " + notification.Message,
+            Core.Models.EventLevel.Warning => "⚠ " + notification.Title + ": " + notification.Message,
+            _ => "ⓘ " + notification.Title + ": " + notification.Message,
+        };
+
+        if (notification.Level == Core.Models.EventLevel.Error)
+        {
+            MessageBox.Show(notification.Message, notification.Title,
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     public DashboardViewModel Dashboard { get; }

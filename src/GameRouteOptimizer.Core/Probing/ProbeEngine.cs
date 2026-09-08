@@ -55,8 +55,14 @@ public sealed class ProbeEngine
                 Port = spec.Port > 0 ? spec.Port : _settings.TcpDefaultPort,
             };
             var tcpResult = await RunSeriesAsync(tcpSpec, ProbeKind.TcpConnect, count, ct).ConfigureAwait(false);
-            tcpResult.Summary.IcmpReliable = false;
-            tcpResult.Summary.Note = "ICMP sin respuesta o bloqueado; se usó TCP connect como alternativa.";
+            // La nota de "ICMP bloqueado" solo tiene sentido si la alternativa TCP obtuvo datos;
+            // si TCP tampoco responde, el motivo real es el que ya explica el resumen.
+            if (tcpResult.Summary.Successes > 0)
+            {
+                tcpResult.Summary.IcmpReliable = false;
+                tcpResult.Summary.Note = "ICMP sin respuesta o bloqueado; se usó TCP connect como alternativa.";
+            }
+
             return tcpResult;
         }
 

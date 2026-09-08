@@ -45,6 +45,11 @@ public sealed class EndpointResolver
                 .Distinct()
                 .ToList();
         }
+        catch (OperationCanceledException)
+        {
+            // La cancelación del usuario nunca debe convertirse en "fallo de DNS".
+            throw;
+        }
         catch (Exception)
         {
             return Array.Empty<IPAddress>();

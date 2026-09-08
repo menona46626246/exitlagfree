@@ -147,17 +147,19 @@ public sealed class GamesViewModel : SectionViewModel
 
     public Mvvm.AsyncRelayCommand NewGameCommand => new(_ =>
     {
+        // Un perfil nuevo se guarda sin servidores objetivo (válido para detectar el
+        // proceso); el usuario añade servidores en el editor antes de optimizar.
         var profile = new GameProfile { Name = "Nuevo juego" };
-        profile.Targets.Add(new GameServerTarget());
         var saved = App.Games.Save(profile, out var error);
         if (!saved)
         {
-            MessageBox.Show(error, "GameRoute Optimizer", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(error, "No se pudo crear el juego", MessageBoxButton.OK, MessageBoxImage.Warning);
             return Task.CompletedTask;
         }
 
         Reload();
         SelectedProfile = Profiles.FirstOrDefault(p => p.Id == profile.Id);
+        AddTarget();
         return Task.CompletedTask;
     });
 

@@ -176,8 +176,16 @@ public sealed class DashboardViewModel : SectionViewModel
     {
         if (SelectedProfile is not { } profile)
         {
-            MessageBox.Show("Selecciona un juego con servidor objetivo primero.",
+            MessageBox.Show("Selecciona un juego primero.",
                 "GameRoute Optimizer", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var startProblem = GameRouteOptimizer.Core.Services.OptimizationOrchestrator.FindStartProblem(profile);
+        if (startProblem.Length > 0)
+        {
+            MessageBox.Show(startProblem,
+                "No se pudo iniciar la optimización", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 

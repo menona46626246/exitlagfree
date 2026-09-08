@@ -29,7 +29,13 @@ public sealed class ConfigStore : IDisposable
             Directory.CreateDirectory(dir);
         }
 
-        _connectionString = $"Data Source={DbPath}";
+        _connectionString = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder
+        {
+            DataSource = DbPath,
+            DefaultTimeout = 20,
+            // WAL: permite lecturas concurrentes y reduce bloqueos entre procesos/instancias.
+            Mode = Microsoft.Data.Sqlite.SqliteOpenMode.ReadWriteCreate,
+        }.ToString();
         Initialize();
     }
 
@@ -87,13 +93,28 @@ public sealed class ConfigStore : IDisposable
 
             try
             {
-                return JsonSerializer.Deserialize<AppSettings>(row, JsonOptions) ?? new AppSettings();
+                var settings = JsonSerializer.Deserialize<AppSettings>(row, JsonOptions) ?? new AppSettings();
+                Sanitize(settings);
+                return settings;
             }
             catch (JsonException)
             {
                 return new AppSettings();
             }
         }
+    }
+
+    /// <summary>
+    /// Rehidrata subobjetos que pudieran venir como null en JSON corrupto/manual:
+    /// evita NullReferenceException en el resto de la aplicación.
+    /// </summary>
+    private static void Sanitize(AppSettings settings)
+    {
+        settings.Probing ??= new Models.ProbingSettings();
+        settings.AutoSwitch ??= new Models.AutoSwitchSettings();
+        settings.Tunnel ??= new Models.TunnelSettings();
+        settings.Logging ??= new Models.LogSettings();
+        settings.Tunnel.WireGuardSearchDirs ??= new List<string>();
     }
 
     public void SaveSettings(AppSettings settings)
@@ -374,6 +395,9 @@ public sealed class ConfigStore : IDisposable
     {
         var conn = new Microsoft.Data.Sqlite.SqliteConnection(_connectionString);
         conn.Open();
+        using var busy = conn.CreateCommand();
+        busy.CommandText = "PRAGMA busy_timeout=10000;";
+        busy.ExecuteNonQuery();
         return conn;
     }
 

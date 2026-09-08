@@ -30,10 +30,11 @@ public static class ProbeSummaryCalculator
             Attempts = attempts.Count,
         };
 
-        var rtts = attempts.Where(a => a.Success && a.RttMs.HasValue)
+        // rtts en orden de llegada (para jitter) y ordenadas (para percentiles/mín/máx).
+        var orderedRtts = attempts.Where(a => a.Success && a.RttMs.HasValue)
             .Select(a => a.RttMs!.Value)
-            .OrderBy(v => v)
             .ToList();
+        var rtts = orderedRtts.OrderBy(v => v).ToList();
 
         summary.Successes = rtts.Count;
         summary.Failures = attempts.Count - rtts.Count;
@@ -64,7 +65,9 @@ public static class ProbeSummaryCalculator
         summary.P95Ms = Percentile(rtts, 0.95);
         summary.P99Ms = Percentile(rtts, 0.99);
         summary.StdDevMs = StdDev(rtts);
-        summary.JitterMs = Jitter(rtts);
+        // El jitter mide la variación entre muestras CONSECUTIVAS (orden de llegada),
+        // no la dispersión de valores ordenados.
+        summary.JitterMs = Jitter(orderedRtts);
         summary.LossPercent = attempts.Count > 0 ? (double)summary.Failures / attempts.Count * 100.0 : 0;
         return summary;
     }

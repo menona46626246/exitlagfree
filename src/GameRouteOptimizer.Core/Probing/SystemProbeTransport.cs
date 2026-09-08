@@ -107,7 +107,7 @@ public sealed class SystemProbeTransport : IProbeTransport
             udp.Connect(target, port);
             var payload = new byte[1] { 0x00 };
             await udp.SendAsync(payload, cts.Token).ConfigureAwait(false);
-            var receiveResult = await udp.ReceiveAsync(cts.Token).ConfigureAwait(false);
+            await udp.ReceiveAsync(cts.Token).ConfigureAwait(false);
             sw.Stop();
             return ProbeReply.Ok(sw.Elapsed.TotalMilliseconds,
                 detail: null);
@@ -115,6 +115,11 @@ public sealed class SystemProbeTransport : IProbeTransport
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
             return ProbeReply.Fail(ProbeFailureReason.Cancelled, "cancelado");
+        }
+        catch (OperationCanceledException)
+        {
+            // Timeout del CTS interno (CancelAfter): sin respuesta UDP dentro del plazo.
+            return ProbeReply.Fail(ProbeFailureReason.Timeout, $"sin respuesta UDP en {timeoutMs} ms");
         }
         catch (SocketException ex)
         {

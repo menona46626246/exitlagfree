@@ -42,23 +42,30 @@ public sealed class RelayManager
             return "El nombre del relay es obligatorio.";
         }
 
-        if (!relay.HasEndpoint)
+        // Se permite guardar relays "en progreso" (sin endpoint/claves todavía) para
+        // poder completarlos luego; medir o conectar exige los campos necesarios.
+        if (!string.IsNullOrWhiteSpace(relay.EndpointHost) &&
+            relay.EndpointPort is < 1 or > 65535)
         {
-            return "El endpoint debe tener host y puerto (1-65535).";
+            return "El puerto del endpoint debe estar entre 1 y 65535.";
         }
 
-        if (string.IsNullOrWhiteSpace(relay.PublicKey))
+        if (!string.IsNullOrWhiteSpace(relay.EndpointHost) &&
+            !Tunneling.WireGuardConfigParser.IsValidEndpointHost(relay.EndpointHost))
         {
-            return "La clave pública del relay es obligatoria.";
+            return $"El host del endpoint «{relay.EndpointHost}» no parece una IP o dominio válidos.";
         }
 
-        if (relay.PublicKey.Length is > 0 && !Tunneling.WireGuardConfigParser.IsValidKey(relay.PublicKey))
+        // La clave pública NO es obligatoria para guardar: un relay sin claves puede
+        // medirse (ping al endpoint). Solo se exige al conectar el túnel.
+        if (!string.IsNullOrWhiteSpace(relay.PublicKey) &&
+            !Tunneling.WireGuardConfigParser.IsValidKey(relay.PublicKey))
         {
             return "La clave pública no parece una clave WireGuard válida (44 caracteres base64).";
         }
 
         var ips = relay.AllowedIps.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (ips.Length == 0 || ips.Any(ip => !Tunneling.WireGuardConfigParser.IsValidCidr(ip)))
+        if (ips.Length > 0 && ips.Any(ip => !Tunneling.WireGuardConfigParser.IsValidCidr(ip)))
         {
             return "AllowedIPs contiene entradas CIDR inválidas (p. ej. 0.0.0.0/0).";
         }

@@ -30,19 +30,17 @@ public sealed class GameManager
             return "El nombre del juego es obligatorio.";
         }
 
-        if (profile.Targets.Count == 0)
+        // Se permite guardar un perfil sin servidores (p. ej. recién creado o solo para
+        // detectar el proceso); la validación de uso ocurre al optimizar/diagnosticar.
+        for (var i = 0; i < profile.Targets.Count; i++)
         {
-            return "Añade al menos un servidor objetivo (dominio o IP).";
-        }
-
-        foreach (var target in profile.Targets)
-        {
+            var target = profile.Targets[i];
             var host = !string.IsNullOrWhiteSpace(target.Domain)
                 ? target.Domain!.Trim()
                 : target.IpAddress?.Trim();
             if (string.IsNullOrWhiteSpace(host))
             {
-                return "Un servidor objetivo no tiene dominio ni IP.";
+                return $"El servidor objetivo {i + 1} no tiene dominio ni IP. Rellénalo o elimínalo.";
             }
         }
 

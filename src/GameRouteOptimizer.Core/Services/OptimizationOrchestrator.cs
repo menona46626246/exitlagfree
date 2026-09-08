@@ -154,6 +154,12 @@ public sealed class OptimizationOrchestrator : IDisposable
         bool deep,
         CancellationToken externalCt)
     {
+        var startProblem = FindStartProblem(profile);
+        if (startProblem.Length > 0)
+        {
+            throw new InvalidOperationException(startProblem);
+        }
+
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(externalCt);
         var report = new DiagnosticsReport
         {
@@ -168,7 +174,7 @@ public sealed class OptimizationOrchestrator : IDisposable
 
         try
         {
-            var target = profile.Targets[0];
+            var target = FirstUsableTarget(profile)!;
             var settings = Settings;
             var spec = BuildTargetSpec(target, settings);
 
@@ -195,10 +201,17 @@ public sealed class OptimizationOrchestrator : IDisposable
                 report.Notes.Add("Traceroute no disponible: " + ex.Message);
             }
 
-            // Relays habilitados y no bloqueados.
+            // Relays habilitados y no bloqueados, con endpoint válido para medir.
             var candidates = _relays.GetEnabled()
-                .Where(r => !profile.BlockedRelayIds.Contains(r.Id))
+                .Where(r => r.HasEndpoint && !profile.BlockedRelayIds.Contains(r.Id))
                 .ToList();
+            var relaysSinEndpoint = _relays.GetEnabled()
+                .Count(r => !r.HasEndpoint && !profile.BlockedRelayIds.Contains(r.Id));
+            if (relaysSinEndpoint > 0)
+            {
+                report.Notes.Add(
+                    $"{relaysSinEndpoint} relay(s) habilitado(s) sin endpoint válido se omitieron del diagnóstico; revísalos en la sección Relays.");
+            }
 
             if (candidates.Count > 0 &&
                 _state.TryTransition(ProgramState.ProbingRelays, "diagnóstico: relays"))
@@ -288,6 +301,22 @@ public sealed class OptimizationOrchestrator : IDisposable
                 return;
             }
 
+            var startProblem = FindStartProblem(profile);
+            if (startProblem.Length > 0)
+            {
+                // Error del usuario, no del sistema: aviso claro y sin máquina de estados rota.
+                _log.Warn(startProblem);
+                _notifications.Warn("No se pudo iniciar la optimización", startProblem);
+                return;
+            }
+
+            // Tras un error previo, una nueva petición explícita del usuario permite reintentar.
+            if (_state.State == ProgramState.Error)
+            {
+                _state.TryTransition(ProgramState.Idle, "nueva optimización solicitada");
+            }
+
+            _operationCts?.Dispose();
             _operationCts = new CancellationTokenSource();
             _currentProfile = profile;
             _userConfirmedRelay = autoApproved;
@@ -395,8 +424,29 @@ public sealed class OptimizationOrchestrator : IDisposable
     private async Task RunOptimizationWorkerAsync(CancellationToken ct)
     {
         var profile = _currentProfile!;
-        var target = profile.Targets[0];
         var settings = Settings;
+
+        // Preflight defensivo (RequestOptimization ya valida, pero el perfil podría haberse
+        // editado entre la petición y el arranque del worker): fallo limpio, sin máquina de
+        // estados rota ni perfil fantasma.
+        var startProblem = FindStartProblem(profile);
+        if (startProblem.Length > 0)
+        {
+            _log.Warn(startProblem);
+            _notifications.Warn("No se pudo iniciar la optimización", startProblem);
+            lock (_gate)
+            {
+                _operationCts?.Dispose();
+                _operationCts = null;
+                _operationTask = null;
+                _currentProfile = null;
+            }
+
+            _state.TryTransition(ProgramState.Idle, "no se pudo iniciar la optimización");
+            return;
+        }
+
+        var target = FirstUsableTarget(profile)!;
         var primarySpec = BuildTargetSpec(target, settings);
         _currentTargetDisplay = PrimaryTargetDisplay(profile);
         _lastSwitchUtc = null;
@@ -436,12 +486,19 @@ public sealed class OptimizationOrchestrator : IDisposable
                 }
             }
 
-            // 2) Medir relays candidatos.
+            // 2) Medir relays candidatos (habilitados, no bloqueados y con endpoint válido).
             var relayCandidates = _relays.GetEnabled()
-                .Where(r => !profile.BlockedRelayIds.Contains(r.Id))
+                .Where(r => r.HasEndpoint && !profile.BlockedRelayIds.Contains(r.Id))
                 .OrderBy(r => r.Priority)
                 .ThenBy(r => r.Name)
                 .ToList();
+            var relaysSinEndpoint = _relays.GetEnabled()
+                .Count(r => !r.HasEndpoint && !profile.BlockedRelayIds.Contains(r.Id));
+            if (relaysSinEndpoint > 0)
+            {
+                AddSessionEvent(SessionEventCategory.Warning,
+                    $"{relaysSinEndpoint} relay(s) habilitado(s) sin endpoint válido se omitieron; revísalos en la sección Relays.");
+            }
 
             var relayMeasurements = new List<RelayMeasurement>();
             if (relayCandidates.Count > 0 &&
@@ -576,6 +633,21 @@ public sealed class OptimizationOrchestrator : IDisposable
         CancellationToken ct)
     {
         var settings = Settings;
+
+        // Validación de configuración del relay ANTES de intentar nada en la red:
+        // errores claros en español en vez de fallos crípticos de la herramienta.
+        if (!relay.HasEndpoint)
+        {
+            throw new InvalidOperationException(
+                $"El relay «{relay.Name}» no tiene un endpoint válido (host:puerto). Corrígelo en Relays.");
+        }
+
+        if (!Tunneling.WireGuardConfigParser.IsValidKey(relay.PublicKey))
+        {
+            throw new InvalidOperationException(
+                $"El relay «{relay.Name}» no tiene una clave pública válida. " +
+                "Cópiala del servidor WireGuard ([Peer] PublicKey) o importa su .conf en Relays.");
+        }
 
         // Clave privada: cargada o solicitada al usuario (evento → UI).
         if (!_relays.HasUsablePrivateKey(relay))
@@ -1017,6 +1089,49 @@ public sealed class OptimizationOrchestrator : IDisposable
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// Problema que impide optimizar/diagnosticar un perfil, o cadena vacía si es válido.
+    /// Usado por la UI (mensajes claros) y por el orquestador (preflight).
+    /// </summary>
+    public static string FindStartProblem(GameProfile profile)
+    {
+        if (profile is null)
+        {
+            return "Selecciona un juego primero.";
+        }
+
+        if (string.IsNullOrWhiteSpace(profile.Name))
+        {
+            return "El juego no tiene nombre; asígnale uno en la sección Juegos.";
+        }
+
+        if (FirstUsableTarget(profile) is null)
+        {
+            return profile.Targets.Count == 0
+                ? $"El perfil «{profile.Name}» no tiene servidores objetivo. Añade al menos uno (dominio o IP) en la sección Juegos."
+                : $"El perfil «{profile.Name}» no tiene ningún servidor objetivo con dominio o IP válidos. Revísalos en la sección Juegos.";
+        }
+
+        return string.Empty;
+    }
+
+    /// <summary>Primer objetivo del perfil con dominio o IP utilizable (null si no hay).</summary>
+    private static GameServerTarget? FirstUsableTarget(GameProfile profile)
+    {
+        foreach (var target in profile.Targets)
+        {
+            var host = !string.IsNullOrWhiteSpace(target.Domain)
+                ? target.Domain!.Trim()
+                : target.IpAddress?.Trim();
+            if (!string.IsNullOrWhiteSpace(host))
+            {
+                return target;
+            }
+        }
+
+        return null;
     }
 
     private static string TargetRegion(GameProfile profile) =>
