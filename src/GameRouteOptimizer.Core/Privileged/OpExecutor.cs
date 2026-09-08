@@ -347,11 +347,11 @@ public sealed class OpExecutor
 
         if (!enable)
         {
-            var statePathPs = statePath.Replace("'", "''");
-            var script =
+            var disableStatePathPs = statePath.Replace("'", "''");
+            var disableScript =
                 "$ErrorActionPreference = 'Stop'\n" +
                 $"$prefix = '{rulePrefix}'\n" +
-                $"$statePath = '{statePathPs}'\n" +
+                $"$statePath = '{disableStatePathPs}'\n" +
                 "Get-NetFirewallRule -DisplayName ($prefix + '_*') -ErrorAction SilentlyContinue | Remove-NetFirewallRule -ErrorAction SilentlyContinue\n" +
                 "if (Test-Path -LiteralPath $statePath) {\n" +
                 "  $saved = Get-Content -LiteralPath $statePath -Raw | ConvertFrom-Json\n" +
@@ -362,7 +362,7 @@ public sealed class OpExecutor
                 "  Remove-Item -LiteralPath $statePath -Force\n" +
                 "}\n" +
                 "Write-Output 'GRO kill switch desactivado: reglas eliminadas y acciones de salida restauradas.'";
-            var run = await RunPowershellAsync(script, ct).ConfigureAwait(false);
+            var run = await RunPowershellAsync(disableScript, ct).ConfigureAwait(false);
             return run.ExitCode == 0
                 ? PrivilegedOpResult.Success(run.Output, "Kill switch desactivado: reglas eliminadas y firewall restaurado.")
                 : PrivilegedOpResult.Failure(run.Output.Trim());
