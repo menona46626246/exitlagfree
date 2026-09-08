@@ -37,7 +37,7 @@ public sealed class LogService : IDisposable
                 .MinimumLevel.ControlledBy(new LoggingLevelSwitch(level))
                 .Enrich.WithProperty("App", ProductInfo.Name)
                 .WriteTo.File(
-                    new CompactJsonFormatter(),
+                    new Serilog.Formatting.Json.JsonFormatter(),
                     Path.Combine(LogDirectory, "gro-.log"),
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 10,
