@@ -6,16 +6,17 @@ namespace GameRouteOptimizer.Core.Probing;
 
 /// <summary>
 /// Resolución DNS con caché corta y preferencia IPv4 (los juegos suelen usar IPv4).
-/// Solo resuelve dominios aportados por el usuario.
+/// Solo resuelve dominios aportados por el usuario. Virtual para permitir
+/// resolvers simulados en tests (sin red externa).
 /// </summary>
-public sealed class EndpointResolver
+public class EndpointResolver
 {
     private sealed record CacheEntry(DateTimeOffset ExpiresUtc, IReadOnlyList<IPAddress> Addresses);
 
     private static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(60);
     private readonly ConcurrentDictionary<string, CacheEntry> _cache = new();
 
-    public async Task<IReadOnlyList<IPAddress>> ResolveAsync(string host, CancellationToken ct)
+    public virtual async Task<IReadOnlyList<IPAddress>> ResolveAsync(string host, CancellationToken ct)
     {
         var key = host.Trim().ToLowerInvariant();
 

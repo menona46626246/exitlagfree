@@ -416,7 +416,7 @@ public class CoreTests
     }
 
     [Fact]
-    public void ProbeEngine_FallbackAutomaticoACuandoIcmpBloqueado()
+    public async Task ProbeEngine_FallbackAutomaticoACuandoIcmpBloqueado()
     {
         var fake = new FakeProbeTransport
         {
@@ -426,10 +426,9 @@ public class CoreTests
         var settings = FastSettings();
         var engine = new ProbeEngine(fake, settings);
 
-        var result = engine.ProbeAsync(
-                new ProbeTargetSpec { Label = "srv", Host = "127.0.0.1", Kind = ProbeKind.Icmp },
-                deep: false, CancellationToken.None)
-            .GetAwaiter().GetResult();
+        var result = await engine.ProbeAsync(
+            new ProbeTargetSpec { Label = "srv", Host = "127.0.0.1", Kind = ProbeKind.Icmp },
+            deep: false, CancellationToken.None);
 
         Assert.Equal(ProbeKind.TcpConnect, result.Summary.Kind);
         Assert.False(result.Summary.IcmpReliable);
@@ -441,17 +440,16 @@ public class CoreTests
     }
 
     [Fact]
-    public void ProbeEngine_ConIcmpDeshabilitadoUsaTcpDirectamente()
+    public async Task ProbeEngine_ConIcmpDeshabilitadoUsaTcpDirectamente()
     {
         var fake = new FakeProbeTransport { TcpReply = ProbeReply.Ok(9) };
         var settings = FastSettings();
         settings.UseIcmp = false;
         var engine = new ProbeEngine(fake, settings);
 
-        var result = engine.ProbeAsync(
-                new ProbeTargetSpec { Label = "srv", Host = "127.0.0.1", Kind = ProbeKind.Icmp },
-                deep: false, CancellationToken.None)
-            .GetAwaiter().GetResult();
+        var result = await engine.ProbeAsync(
+            new ProbeTargetSpec { Label = "srv", Host = "127.0.0.1", Kind = ProbeKind.Icmp },
+            deep: false, CancellationToken.None);
 
         Assert.Equal(ProbeKind.TcpConnect, result.Summary.Kind);
         Assert.Equal(0, fake.IcmpCalls);
@@ -460,37 +458,45 @@ public class CoreTests
     }
 
     [Fact]
-    public void ProbeEngine_HostInvalidoDaResumenDnsSinExcepcion()
+    public async Task ProbeEngine_DnsFallidoDaResumenLimpioSinRed()
     {
+        // Resolver simulado que siempre falla: cubre el camino de "dominio inválido / DNS caído"
+        // de forma determinista y sin red externa.
         var fake = new FakeProbeTransport();
-        var engine = new ProbeEngine(fake, FastSettings());
+        var engine = new ProbeEngine(fake, FastSettings(), resolver: new EmptyResolver());
 
-        var result = engine.ProbeAsync(
-                new ProbeTargetSpec { Label = "incompleto", Host = string.Empty, Kind = ProbeKind.Icmp },
-                deep: false, CancellationToken.None)
-            .GetAwaiter().GetResult();
+        var result = await engine.ProbeAsync(
+            new ProbeTargetSpec { Label = "servidor-inexistente", Host = "no-resuelve.ejemplo", Kind = ProbeKind.Icmp },
+            deep: false, CancellationToken.None);
 
         Assert.False(result.Summary.Usable);
         Assert.False(result.Summary.HasData);
+        Assert.Equal(0, fake.IcmpCalls);
         Assert.NotNull(result.Summary.UnavailableReason);
         Assert.Contains("resolver", result.Summary.UnavailableReason!, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
-    public void ProbeEngine_CanceladoAntesDeEmpezarDevuelveResumenLimpio()
+    public async Task ProbeEngine_CanceladoAntesDeEmpezarDevuelveResumenLimpio()
     {
         var fake = new FakeProbeTransport();
         var engine = new ProbeEngine(fake, FastSettings());
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        var result = engine.ProbeAsync(
-                new ProbeTargetSpec { Label = "srv", Host = "127.0.0.1", Kind = ProbeKind.Icmp },
-                deep: false, cts.Token)
-            .GetAwaiter().GetResult();
+        var result = await engine.ProbeAsync(
+            new ProbeTargetSpec { Label = "srv", Host = "127.0.0.1", Kind = ProbeKind.Icmp },
+            deep: false, cts.Token);
 
         Assert.False(result.Summary.HasData);
         Assert.Equal(0, fake.IcmpCalls);
+    }
+
+    /// <summary>Resolver determinista sin DNS para tests del motor de probes.</summary>
+    private sealed class EmptyResolver : EndpointResolver
+    {
+        public override Task<IReadOnlyList<IPAddress>> ResolveAsync(string host, CancellationToken ct) =>
+            Task.FromResult<IReadOnlyList<IPAddress>>(Array.Empty<IPAddress>());
     }
 
     private static ProbingSettings FastSettings() => new()
@@ -517,7 +523,7 @@ public class CoreTests
             // Optimizar/diagnosticar sí exige un servidor objetivo utilizable.
             var problem = OptimizationOrchestrator.FindStartProblem(draft);
             Assert.False(string.IsNullOrWhiteSpace(problem));
-            Assert.Contains("servidor objetivo", problem, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("no tiene servidores objetivo", problem, StringComparison.OrdinalIgnoreCase);
 
             draft.Targets.Add(new GameServerTarget { Domain = "srv.ejemplo.com" });
             Assert.True(manager.Save(draft, out _));
