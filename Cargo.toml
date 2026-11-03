@@ -1,0 +1,48 @@
+# Tramo — workspace del MVP.
+# El lockfile se genera con `cargo generate-lockfile` en el primer build y se
+# commitea entonces; CI falla si falta en el job de release (--locked).
+[workspace]
+resolver = "2"
+members = [
+  "core",
+  "config",
+  "probe",
+  "engine",
+  "tunnel",
+  "netctl",
+  "netctl/helper",
+  "ipc",
+  "api",
+  "node/agent",
+  "cli",
+  "app/src-tauri",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.82"
+license = "Apache-2.0"
+repository = "https://github.com/<org>/tramo"
+authors = ["The Tramo Contributors"]
+
+[workspace.dependencies]
+# Dependencias deliberadamente mínimas: menos superficie de supply chain.
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "1"
+clap = { version = "4", features = ["derive"] }
+socket2 = { version = "0.5", features = ["all"] }
+tramo-core = { path = "core" }
+tramo-config = { path = "config" }
+tramo-probe = { path = "probe" }
+tramo-engine = { path = "engine" }
+tramo-ipc = { path = "ipc" }
+tramo-netctl = { path = "netctl" }
+tramo-tunnel = { path = "tunnel" }
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = "symbols"

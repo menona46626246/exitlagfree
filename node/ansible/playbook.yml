@@ -1,0 +1,11 @@
+---
+# Despliegue de un relay de prueba en un host con IP publica.
+# Uso: ansible-playbook -i inventory.ini node/ansible/playbook.yml
+# Las claves se pasan con ansible-vault; NUNCA en el repositorio.
+- name: Desplegar nodo relay Tramo
+  hosts: relays
+  become: true
+  vars_files:
+    - defaults/tramo-relay.yml
+  roles:
+    - tramo-relay

@@ -1,0 +1,8 @@
+# Relay WireGuard de prueba. NO apto para produccion sin revisar firewall,
+# rotacion de claves y actualizaciones de seguridad.
+FROM alpine:3.20
+RUN apk add --no-cache wireguard-tools iptables iproute2 bash
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod 0755 /usr/local/bin/entrypoint.sh
+EXPOSE 51820/udp
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

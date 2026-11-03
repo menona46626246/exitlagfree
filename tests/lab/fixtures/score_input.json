@@ -1,0 +1,169 @@
+{
+  "samples": [
+    {
+      "seq": 0,
+      "rtt_ms": 25.0
+    },
+    {
+      "seq": 1,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 2,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 3,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 4,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 5,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 6,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 7,
+      "rtt_ms": null
+    },
+    {
+      "seq": 8,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 9,
+      "rtt_ms": 25.0
+    },
+    {
+      "seq": 10,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 11,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 12,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 13,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 14,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 15,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 16,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 17,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 18,
+      "rtt_ms": 25.0
+    },
+    {
+      "seq": 19,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 20,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 21,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 22,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 23,
+      "rtt_ms": null
+    },
+    {
+      "seq": 24,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 25,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 26,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 27,
+      "rtt_ms": 25.0
+    },
+    {
+      "seq": 28,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 29,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 30,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 31,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 32,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 33,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 34,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 35,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 36,
+      "rtt_ms": 25.0
+    },
+    {
+      "seq": 37,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 38,
+      "rtt_ms": 20.0
+    },
+    {
+      "seq": 39,
+      "rtt_ms": 20.0
+    }
+  ],
+  "window_ms": 60000,
+  "flaps": 0,
+  "load": 0.0,
+  "geo_cost_ms": 0.0,
+  "comment": "Ventana sintetica para tramoctl score; no contiene datos personales."
+}

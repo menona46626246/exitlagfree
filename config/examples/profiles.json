@@ -1,0 +1,16 @@
+{
+  "profiles": [
+    {
+      "id": "juego-generico",
+      "name": "Juego generico (ejemplo)",
+      "enabled": false,
+      "destination": "203.0.113.25:27015",
+      "rules": [
+        { "kind": "cidr", "value": "203.0.113.0/24", "protocol": "udp", "comment": "rango del servidor de ejemplo" },
+        { "kind": "port", "value": "27015", "protocol": "udp" }
+      ],
+      "node_priority": ["wg-lab-1"],
+      "requires_ack": true
+    }
+  ]
+}

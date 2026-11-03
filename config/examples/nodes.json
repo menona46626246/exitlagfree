@@ -1,0 +1,14 @@
+{
+  "nodes": [
+    {
+      "id": "wg-lab-1",
+      "name": "Relay de laboratorio",
+      "region_label": "lab-local",
+      "endpoint": "198.51.100.10:51820",
+      "public_key": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "version": "0.1.0",
+      "priority": 0,
+      "status": "unknown"
+    }
+  ]
+}

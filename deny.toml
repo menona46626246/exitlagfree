@@ -1,0 +1,28 @@
+# Auditoría de licencias y advisories: CI ejecuta `cargo deny check`.
+# Los drivers GPLv2 (Wintun/WireGuardNT) son binarios del sistema usados por ABI,
+# NO crate dependencies, por lo que no aparecen en este grafo.
+[advisories]
+version = 2
+ignore = []
+
+[licenses]
+version = 2
+confidence-threshold = 0.9
+allow = [
+  "Apache-2.0",
+  "MIT",
+  "BSD-3-Clause",
+  "ISC",
+  "Unicode-3.0",
+  "CC0-1.0",
+  "Zlib",
+]
+exceptions = []
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

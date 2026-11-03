@@ -1,0 +1,10 @@
+# Gestionado por Ansible. No editar a mano.
+[Interface]
+Address = {{ tramo_wg_address }}
+ListenPort = {{ tramo_wg_port }}
+PrivateKey = {{ tramo_relay_private_key }}
+SaveConfig = false
+
+[Peer]
+PublicKey = {{ tramo_client_public_key }}
+AllowedIPs = 10.44.0.2/32

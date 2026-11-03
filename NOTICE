@@ -1,0 +1,15 @@
+Tramo
+Copyright 2026 The Tramo Contributors
+
+This product includes software developed by the Tramo project contributors.
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+Third-party components are NOT linked into this codebase:
+  - WireGuard kernel module (Linux, GPLv2): accessed through the netlink uAPI only.
+  - Wintun / WireGuardNT (Windows, GPLv2): used as unmodified, separately signed
+    system drivers through their public ABI, with their own license notice and
+    source offer. They are not compiled into, nor statically linked with, Tramo.
+  - boringtun (BSD-3-Clause) and wireguard-go (MIT) are optional userspace
+    backends; their license texts are shipped alongside any redistributed binary.
+
+No third-party product names, logos or trade dress are used in this project.

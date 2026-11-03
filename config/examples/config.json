@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "mode": "measure_only",
+  "weights": { "rtt": 1.0, "jitter": 2.0, "loss": 1.0, "tail": 1.0, "load": 0.5, "stability": 1.5, "geo": 0.25 },
+  "hysteresis": {
+    "margin_ms": 8.0,
+    "margin_ratio": 0.12,
+    "consecutive_windows": 3,
+    "cooldown_ms": 60000,
+    "max_switches_10m": 3,
+    "min_samples": 20,
+    "min_window_ms": 10000,
+    "hard_loss": 0.10,
+    "hard_timeouts": 15,
+    "max_handshake_age_ms": 30000,
+    "priority_step_ms": 2.0
+  },
+  "probe": { "interval_ms": 200, "timeout_ms": 1000, "window_ms": 60000, "protocol": "auto", "target": null },
+  "profiles": [],
+  "nodes": [],
+  "logging": { "enabled": false, "ip_redaction": "truncate", "max_days": 7 },
+  "telemetry": { "enabled": false, "consent_given_at": null, "preview_before_send": true },
+  "on_failure": "revert_direct",
+  "kill_switch": false
+}

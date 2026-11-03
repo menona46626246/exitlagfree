@@ -1,0 +1,21 @@
+[package]
+name = "tramo-desktop"
+description = "Comandos tipados de la aplicacion desktop (runtime Tauri en Fase 6)"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+build = "build.rs"
+
+[lib]
+name = "tramo_desktop"
+path = "src/lib.rs"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+tramo-core.workspace = true
+tramo-config.workspace = true
+tramo-engine.workspace = true

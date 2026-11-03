@@ -1,0 +1,5 @@
+# Para releases se fija un canal exacto en CI (ver .github/workflows/release.yml).
+[toolchain]
+channel = "stable"
+components = ["rustfmt", "clippy"]
+profile = "minimal"
