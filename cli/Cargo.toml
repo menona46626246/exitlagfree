@@ -1,0 +1,17 @@
+[package]
+name = "tramoctl"
+description = "CLI headless de Tramo: medir, puntuar, diagnosticar y validar config"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+clap.workspace = true
+serde_json.workspace = true
+tramo-core.workspace = true
+tramo-config.workspace = true
+tramo-probe.workspace = true
+tramo-engine.workspace = true

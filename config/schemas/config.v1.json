@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tramo.example/schemas/config.v1.json",
+  "title": "Configuracion Tramo v1",
+  "type": "object",
+  "required": ["version"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "integer", "const": 1 },
+    "mode": { "type": "string", "enum": ["measure_only", "suggest", "auto"], "default": "measure_only" },
+    "weights": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "rtt": { "type": "number", "minimum": 0, "maximum": 10, "default": 1.0 },
+        "jitter": { "type": "number", "minimum": 0, "maximum": 10, "default": 2.0 },
+        "loss": { "type": "number", "minimum": 0, "maximum": 10, "default": 1.0 },
+        "tail": { "type": "number", "minimum": 0, "maximum": 10, "default": 1.0 },
+        "load": { "type": "number", "minimum": 0, "maximum": 10, "default": 0.5 },
+        "stability": { "type": "number", "minimum": 0, "maximum": 10, "default": 1.5 },
+        "geo": { "type": "number", "minimum": 0, "maximum": 10, "default": 0.25 }
+      }
+    },
+    "hysteresis": {
+      "type": "object",
+      "properties": {
+        "margin_ms": { "type": "number", "minimum": 0, "maximum": 100, "default": 8.0 },
+        "margin_ratio": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.12 },
+        "consecutive_windows": { "type": "integer", "minimum": 1, "maximum": 60, "default": 3 },
+        "cooldown_ms": { "type": "integer", "minimum": 0, "default": 60000 },
+        "max_switches_10m": { "type": "integer", "minimum": 1, "default": 3 },
+        "min_samples": { "type": "integer", "minimum": 5, "default": 20 },
+        "min_window_ms": { "type": "integer", "minimum": 1000, "default": 10000 },
+        "hard_loss": { "type": "number", "minimum": 0, "maximum": 1, "default": 0.10 },
+        "hard_timeouts": { "type": "integer", "minimum": 1, "default": 15 },
+        "max_handshake_age_ms": { "type": "integer", "default": 30000 },
+        "priority_step_ms": { "type": "number", "minimum": 0, "maximum": 50, "default": 2.0 }
+      }
+    },
+    "probe": {
+      "type": "object",
+      "properties": {
+        "interval_ms": { "type": "integer", "minimum": 50, "maximum": 10000, "default": 200 },
+        "timeout_ms": { "type": "integer", "minimum": 50, "maximum": 30000, "default": 1000 },
+        "window_ms": { "type": "integer", "minimum": 10000, "maximum": 600000, "default": 60000 },
+        "protocol": { "type": "string", "enum": ["udp", "tcp", "icmp", "auto"], "default": "auto" },
+        "target": { "type": ["string", "null"] }
+      }
+    },
+    "profiles": { "type": "array", "items": { "$ref": "#/$defs/profile" }, "default": [] },
+    "nodes": { "type": "array", "items": { "$ref": "#/$defs/node" }, "default": [] },
+    "logging": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "ip_redaction": { "type": "string", "enum": ["none", "truncate", "hash"], "default": "truncate" },
+        "max_days": { "type": "integer", "minimum": 1, "maximum": 365, "default": 7 }
+      }
+    },
+    "telemetry": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "consent_given_at": { "type": ["string", "null"] },
+        "preview_before_send": { "type": "boolean", "default": true }
+      }
+    },
+    "on_failure": { "type": "string", "enum": ["revert_direct", "block"], "default": "revert_direct" },
+    "kill_switch": { "type": "boolean", "default": false }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["cidr", "port", "protocol", "executable"] },
+        "value": { "type": "string", "maxLength": 260 },
+        "protocol": { "type": ["string", "null"], "enum": ["udp", "tcp", "both", null] },
+        "comment": { "type": ["string", "null"] }
+      }
+    },
+    "profile": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Za-z0-9_-]+$", "maxLength": 64 },
+        "name": { "type": "string" },
+        "enabled": { "type": "boolean", "default": false },
+        "destination": { "type": ["string", "null"] },
+        "rules": { "type": "array", "items": { "$ref": "#/$defs/rule" }, "default": [] },
+        "node_priority": { "type": "array", "items": { "type": "string" }, "default": [] },
+        "requires_ack": { "type": "boolean", "default": false }
+      }
+    },
+    "node": {
+      "type": "object",
+      "required": ["id", "name", "endpoint", "public_key"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "endpoint": { "type": "string" },
+        "public_key": { "type": "string" },
+        "region_label": { "type": ["string", "null"] },
+        "priority": { "type": "integer", "minimum": 0, "default": 0 },
+        "geo_cost_ms": { "type": "number", "minimum": 0, "default": 0 },
+        "enabled": { "type": "boolean", "default": true },
+        "private_key": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+name: Seguridad y licencias
+
+on:
+  pull_request:
+  schedule:
+    - cron: '17 4 * * 1'
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo generate-lockfile
+      - name: Instalar herramientas de auditoria
+        run: cargo install cargo-audit cargo-deny --locked
+      - name: Advisories
+        run: cargo audit
+      - name: Licencias y fuentes
+        run: cargo deny check licenses advisories sources
+      - name: Sin marcas de terceros
+        run: bash scripts/check-no-branding.sh

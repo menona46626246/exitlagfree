@@ -10,11 +10,11 @@
 
 ### 0.1 Hallazgo bloqueante de marca
 
-El repositorio actual se llama `exitlagfree` y su único archivo (`README.md`) contiene `# exitlagfree`. Ese nombre incluye la marca de un tercero y entra en conflicto directo con la restricción «no usar el nombre ExitLag, su marca, su identidad visual ni afirmaciones que sugieran compatibilidad oficial».
+El repositorio actual usa un nombre que contiene la marca de un tercero y su único archivo (`README.md`) reproducía ese nombre como título. No se reproduce aquí por la restricción legal: no usar el nombre, la marca ni la identidad visual de terceros, ni afirmar compatibilidad oficial. Esta situación entra en conflicto directo con dicha restricción.
 
-**Acción propuesta (Fase 0, requiere decisión del dueño del repositorio):** renombrar el repositorio y la organización a `tramo` (o el nombre que se elija), y reemplazar todo el contenido del README. Mientras tanto, ningún artefacto nuevo de código, documentación, configuración, nombres de binarios, dominios, iconos ni metadatos de release usará la marca de terceros. Tampoco se usarán frases del tipo «alternativa a X», «compatible con X» ni comparativas de marca. La categoría se describe de forma genérica: *optimizador de red de código abierto y auditable para juegos*.
+**Acción propuesta (Fase 0, requiere decisión del dueño del repositorio):** renombrar el repositorio y la organización a `tramo` (o el nombre que se elija), y reemplazar todo el contenido del README (no se reproduce el nombre aquí por la restricción legal). Mientras tanto, ningún artefacto nuevo de código, documentación, configuración, nombres de binarios, dominios, iconos ni metadatos de release usará la marca de terceros. Tampoco se usarán frases del tipo «alternativa a X», «compatible con X» ni comparativas de marca. La categoría se describe de forma genérica: *optimizador de red de código abierto y auditable para juegos*.
 
-> Nota de proceso: la rama de trabajo de esta sesión es `arena/79abd4e1-exitlagfree` y es inmutable por diseño de la plataforma; el renombrado es del **repositorio**, no de la rama. GitHub redirige automáticamente la URL antigua.
+> Nota de proceso: la rama de trabajo de esta sesión es `arena/79abd4e1-…` (identificador redactado) y es inmutable por diseño de la plataforma; el renombrado es del **repositorio**, no de la rama. GitHub redirige automáticamente la URL antigua.
 
 ### 0.2 Nombre del proyecto
 
@@ -456,7 +456,7 @@ Convenciones: `core` sin I/O; `tiempo` siempre `Instant` monotónico; errores co
 
 ## 6. Primer comando para inicializar el proyecto
 
-**Estado verificado en este entorno (2026-11-03):** el checkout contiene únicamente `README.md` (`# exitlagfree`); **no** hay `cargo`, `rustc`, `go` ni `docker` instalados en el sandbox (sí Node v22 y `jq`). Por tanto, el comando siguiente se ejecuta en la máquina de desarrollo tras instalar el toolchain; aquí se entrega validado sintácticamente pero **no ejecutado** para no generar código antes de tu confirmación.
+**Estado verificado en este entorno (2026-11-03):** el checkout contenía únicamente `README.md` (cuyo título reproducía el nombre del repositorio); **no** hay `cargo`, `rustc`, `go` ni `docker` instalados en el sandbox (sí Node v22 y `jq`). Por tanto, el comando siguiente se ejecuta en la máquina de desarrollo tras instalar el toolchain; aquí se entrega validado sintácticamente pero **no ejecutado** para no generar código antes de tu confirmación.
 
 Prerrequisito (una sola vez, en la máquina de desarrollo):
 
@@ -467,7 +467,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profil
 **Primer comando** (crea el workspace Cargo y el esqueleto de directorios dentro del checkout ya existente; no cambia de rama ni hace commit):
 
 ```bash
-cd /home/user/exitlagfree && \
+cd "$(git rev-parse --show-toplevel)" && \
 printf '%s\n' \
   '[workspace]' 'resolver = "2"' \
   'members = ["app/src-tauri", "core", "engine", "probe", "tunnel", "netctl", "ipc", "config", "api", "node/agent", "cli"]' \

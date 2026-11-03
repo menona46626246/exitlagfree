@@ -1,0 +1,6 @@
+---
+tramo_wg_port: 51820
+tramo_wg_address: "10.44.0.1/24"
+tramo_region_label: "self-hosted"
+tramo_agent_port: 8081
+# tramo_relay_private_key y tramo_client_public_key: definir con ansible-vault.

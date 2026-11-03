@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  rust:
+    name: Rust (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - name: Generar lockfile
+        run: cargo generate-lockfile
+      - name: Formato (informativo hasta el fmt inicial)
+        run: cargo fmt --all -- --check
+        continue-on-error: true
+      - name: Clippy workspace
+        run: cargo clippy --workspace --all-targets
+      - name: Clippy estricto en crates endurecidos
+        run: cargo clippy -p tramo-core -p tramo-config -p tramo-ipc -p tramo-netctl --all-targets -- -D warnings
+        continue-on-error: true
+      - name: Tests
+        run: cargo test --workspace
+      - name: Build de binarios headless
+        run: cargo build --release -p tramoctl -p tramo-api -p tramo-node-agent -p tramo-helper
+
+  lab:
+    name: Laboratorio y validaciones (sin root)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Sin marcas de terceros
+        run: bash scripts/check-no-branding.sh
+      - name: Bateria completa
+        run: bash scripts/test.sh
+      - name: Publicar reporte del laboratorio
+        uses: actions/upload-artifact@v4
+        with:
+          name: tramo-lab-report
+          path: tests/lab/report.json
+
+  ui:
+    name: UI (TypeScript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: corepack enable
+      - run: pnpm --dir app/ui install
+      - run: pnpm --dir app/ui build

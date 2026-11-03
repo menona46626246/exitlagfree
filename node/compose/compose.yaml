@@ -1,0 +1,47 @@
+# Laboratorio de prueba de un nodo relay autohospedado.
+# Ejecutar desde la raiz: docker compose -f node/compose/compose.yaml up --build
+# Requiere kernel del host con modulo WireGuard y capacidades NET_ADMIN.
+name: tramo-node
+
+services:
+  relay:
+    build:
+      context: ../..
+      dockerfile: node/docker/Dockerfile.relay
+    cap_add:
+      - NET_ADMIN
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv6.conf.all.forwarding=1
+    ports:
+      - "${WG_PORT:-51820}:51820/udp"
+    volumes:
+      - ../wireguard:/etc/wireguard:ro
+    environment:
+      WGCFG: /etc/wireguard/wg0.conf
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wg", "show"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  agent:
+    build:
+      context: ../..
+      dockerfile: node/docker/Dockerfile.agent
+    environment:
+      TRAMO_REGION_LABEL: "${TRAMO_REGION_LABEL:-lab-local}"
+    ports:
+      - "${AGENT_PORT:-8081}:8081/tcp"
+    depends_on:
+      - relay
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8081/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

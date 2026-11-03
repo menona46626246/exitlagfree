@@ -1,0 +1,25 @@
+{
+  "comment": "Vectores de referencia compartidos por los tests unitarios de Rust (core/) y el oraculo Python. No son mediciones: son valores analiticos.",
+  "loss_equivalents": [
+    { "loss": 0.0, "expected": 0.0 },
+    { "loss": 0.01, "expected": 3.0303030303030303 },
+    { "loss": 0.05, "expected": 15.789473684210526 },
+    { "loss": 0.20, "expected": 75.0 },
+    { "loss": 0.50, "expected": 300.0 },
+    { "loss": 0.99, "expected": 300.0 }
+  ],
+  "histogram": {
+    "rtts": [10.0, 10.0, 20.0, 30.0, 100.0],
+    "expected": { "p50": 20.0, "p95": 100.0, "p99": 100.0, "jitter": 22.5, "tail": 80.0, "loss": 0.0 }
+  },
+  "score": {
+    "metrics": { "p50_ms": 20.0, "jitter_ms": 3.0, "loss": 0.01, "tail_ms": 10.0, "instability": 0.5 },
+    "load": 0.2,
+    "geo_cost_ms": 0.0,
+    "expected": 56.53030303030303
+  },
+  "margins": [
+    { "score": 50.0, "expected": 8.0 },
+    { "score": 200.0, "expected": 24.0 }
+  ]
+}

@@ -1,0 +1,100 @@
+openapi: 3.0.3
+info:
+  title: Tramo Node API
+  version: 0.1.0
+  description: >-
+    API de solo lectura, autohospedada, para descubrir nodos relay propios y
+    consultar su salud. No acepta configuracion, comandos ni binarios:
+    imposibilita ejecucion remota de codigo. No publica datos personales.
+  license:
+    name: Apache-2.0
+servers:
+  - url: https://nodos.example.org
+    description: Detras de proxy inverso con TLS (recomendado)
+  - url: http://127.0.0.1:8080
+    description: Desarrollo local, sin TLS
+security:
+  - apiKey: []
+paths:
+  /v1/nodes:
+    get:
+      summary: Listar nodos configurados
+      operationId: listNodes
+      responses:
+        '200':
+          description: Lista de nodos
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Node' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+  /v1/nodes/{id}:
+    get:
+      summary: Obtener un nodo por id
+      operationId: getNode
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Nodo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Node' }
+        '404': { description: Nodo no encontrado }
+  /v1/health:
+    get:
+      summary: Salud del servicio y metadatos agregados
+      operationId: getHealth
+      responses:
+        '200':
+          description: Estado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Health' }
+  /openapi.yaml:
+    get:
+      summary: Esta especificacion
+      operationId: getOpenApi
+      responses:
+        '200':
+          description: YAML
+          content:
+            application/yaml:
+              schema: { type: string }
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-Tramo-Key
+      description: Opcional; solo si el operador define TRAMO_API_KEY.
+  responses:
+    RateLimited:
+      description: 60 peticiones por minuto por IP
+  schemas:
+    Node:
+      type: object
+      required: [id, name, region_label, endpoint, public_key, version]
+      properties:
+        id: { type: string, example: wg-fra-1 }
+        name: { type: string, example: Frankfurt }
+        region_label: { type: string, example: eu-central }
+        endpoint: { type: string, example: '198.51.100.1:51820' }
+        public_key: { type: string, description: Clave publica WireGuard (base64, 32 bytes) }
+        version: { type: string, example: 0.1.0 }
+        priority: { type: integer, minimum: 0, default: 0 }
+        status: { type: string, enum: [ok, degraded, unreachable, unknown] }
+    Health:
+      type: object
+      required: [status, load, active_peers, version, region_label, nodes]
+      properties:
+        status: { type: string, example: ok }
+        load: { type: number, format: double, minimum: 0, maximum: 1, description: Autodeclarado, no confiable }
+        active_peers: { type: integer, minimum: 0 }
+        version: { type: string }
+        region_label: { type: string }
+        nodes: { type: integer, minimum: 0 }
