@@ -1,0 +1,46 @@
+{
+  "format": "gameroute-relays",
+  "version": 1,
+  "relays": [
+    {
+      "id": "ejemplo-relay-cl-1",
+      "name": "Relay Santiago",
+      "provider": "Mi VPS propio",
+      "country": "CL",
+      "city": "Santiago",
+      "endpointHost": "relay-cl.mi-servidor.example",
+      "endpointPort": 51820,
+      "publicKey": "9lRfF3H0vGhIkQ8WcD6sJzXhN2K1qYtO5pLwVbE4mCk=",
+      "allowedIps": ["10.66.66.0/24", "203.0.113.10/32"],
+      "internalDns": "1.1.1.1",
+      "relayToGameMs": 8,
+      "loadPercent": null,
+      "cost": 10,
+      "priority": 50,
+      "isEnabled": true,
+      "health": "Unknown",
+      "privateKeyRef": "",
+      "createdUtc": "2026-09-08T00:00:00Z"
+    },
+    {
+      "id": "ejemplo-relay-us-1",
+      "name": "Relay Miami",
+      "provider": "Mi VPS propio",
+      "country": "US",
+      "city": "Miami",
+      "endpointHost": "198.51.100.20",
+      "endpointPort": 51820,
+      "publicKey": "Qk7vX2NvZGVzQ2xhdmVzRGVSb3V0ZXNQdWJsaWNLRXk9PT0=",
+      "allowedIps": ["10.66.67.0/24", "203.0.113.10/32"],
+      "internalDns": "",
+      "relayToGameMs": null,
+      "loadPercent": 70,
+      "cost": null,
+      "priority": 100,
+      "isEnabled": true,
+      "health": "Unknown",
+      "privateKeyRef": "",
+      "createdUtc": "2026-09-08T00:00:00Z"
+    }
+  ]
+}

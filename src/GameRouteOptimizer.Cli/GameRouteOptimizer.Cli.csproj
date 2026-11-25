@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>GameRouteOptimizer.Cli</RootNamespace>
+    <AssemblyName>gameroute</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <Description>CLI multiplataforma de GameRoute Optimizer.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GameRouteOptimizer.Core\GameRouteOptimizer.Core.csproj" />
+  </ItemGroup>
+
+</Project>

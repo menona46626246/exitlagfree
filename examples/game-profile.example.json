@@ -1,0 +1,39 @@
+{
+  "format": "gameroute-profile",
+  "version": 1,
+  "profile": {
+    "name": "Mi juego de disparos",
+    "executables": ["mi-juego.exe", "mi-juego-anticheat.exe"],
+    "executablePath": "C:\\Games\\MiJuego\\mi-juego.exe",
+    "launchArguments": "-fullscreen -novid",
+    "preferredProtocol": "Tcp",
+    "routingMode": "TunnelGameOnly",
+    "autoStartOptimization": false,
+    "stopOnGameExit": true,
+    "isEnabled": true,
+    "servers": [
+      {
+        "name": "LATAM Sur - Ranked",
+        "domain": "sa-east.ranked.mijuego.example",
+        "ip": "",
+        "ports": [7000, 7777],
+        "region": "SA-East",
+        "preferredProtocol": "Tcp",
+        "healthUrl": "",
+        "icmpBlocked": false
+      },
+      {
+        "name": "LATAM Sur - Casual",
+        "domain": "",
+        "ip": "203.0.113.10",
+        "ports": [7777],
+        "region": "SA-East",
+        "preferredProtocol": "Icmp"
+      }
+    ],
+    "preferredRelayId": "",
+    "blockedRelayIds": [],
+    "specialRules": "No tunelar el matchmaking (solo game servers).",
+    "notes": "Perfil de ejemplo: edita dominios/IPs reales de tus servidores."
+  }
+}

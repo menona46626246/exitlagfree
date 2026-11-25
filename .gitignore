@@ -1,0 +1,15 @@
+bin/
+obj/
+out/
+dist/
+*.user
+*.suo
+.vs/
+.idea/
+data/
+*.log
+*.db
+*.db-shm
+*.db-wal
+TestResults/
+publish/

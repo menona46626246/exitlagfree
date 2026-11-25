@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>GameRouteOptimizer.App</RootNamespace>
+    <AssemblyName>GameRouteOptimizer</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon Condition="Exists('Resources\app.ico')">Resources\app.ico</ApplicationIcon>
+    <Description>GameRoute Optimizer — optimización de rutas de red para videojuegos (UI WPF en español).</Description>
+    <!-- La App WPF requiere Windows para compilarse (SDK de .NET 8 en Windows).
+         Ver scripts/build.ps1 y README.md -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GameRouteOptimizer.Core\GameRouteOptimizer.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "probeIntervalMs": 1000,
+  "probeTimeoutMs": 2000,
+  "quickSamples": 8,
+  "deepSamples": 40,
+  "maxProbesPerSecond": 5,
+  "monitorIntervalMs": 3000,
+  "autoSwitchEnabled": true,
+  "minImprovementScore": 8,
+  "minImprovementLatencyMs": 10,
+  "switchCooldownSeconds": 300,
+  "minSamplesToSwitch": 5,
+  "maxSwitchesPerHour": 4,
+  "failbackOnTunnelDown": true,
+  "failbackOnWorseQuality": true,
+  "tunnelMtu": 1380,
+  "tunnelDns": "",
+  "killSwitchEnabled": false,
+  "maxReconnectAttempts": 5,
+  "extremeLossThreshold": 0.2,
+  "language": "es",
+  "theme": "dark",
+  "logLevel": "Information",
+  "dataDirectory": "",
+  "safeMode": false,
+  "userAcknowledgedGameToS": false,
+  "allowGameScan": false,
+  "gameScanRoots": [
+    "C:\\Program Files (x86)\\Steam\\steamapps\\common",
+    "C:\\Riot Games"
+  ]
+}

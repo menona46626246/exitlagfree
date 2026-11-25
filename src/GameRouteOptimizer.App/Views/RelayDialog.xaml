@@ -1,0 +1,90 @@
+<Window x:Class="GameRouteOptimizer.App.Views.RelayDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Relay WireGuard" Width="560" Height="560"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BgBrush}">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="Nombre *" Style="{StaticResource DimText}"/>
+                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,10"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="110"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,8,0">
+                        <TextBlock Text="Endpoint host/IP *" Style="{StaticResource DimText}"/>
+                        <TextBox Text="{Binding EndpointHost, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,10"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Puerto *" Style="{StaticResource DimText}"/>
+                        <TextBox Text="{Binding EndpointPort}" Margin="0,4,0,10"/>
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Text="Clave pública del peer (base64, 44 caracteres)" Style="{StaticResource DimText}"/>
+                <TextBox Text="{Binding PublicKey, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" Margin="0,4,0,10"/>
+
+                <TextBlock Text="AllowedIPs (un CIDR por línea, p. ej. 10.66.66.0/24)" Style="{StaticResource DimText}"/>
+                <TextBox Height="60" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" Margin="0,4,0,10"
+                         Text="{Binding AllowedIpsText, UpdateSourceTrigger=PropertyChanged}"/>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,8,0">
+                        <TextBlock Text="País" Style="{StaticResource DimText}"/>
+                        <TextBox Text="{Binding Country}" Margin="0,4,0,10"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                        <TextBlock Text="Ciudad" Style="{StaticResource DimText}"/>
+                        <TextBox Text="{Binding City}" Margin="0,4,0,10"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Proveedor (opcional)" Style="{StaticResource DimText}"/>
+                        <TextBox Text="{Binding Provider}" Margin="0,4,0,10"/>
+                    </StackPanel>
+                </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Margin="0,0,8,0">
+                        <TextBlock Text="Relay→juego ms (estimación tuya)" Style="{StaticResource DimText}"/>
+                        <TextBox Text="{Binding RelayToGameMs, TargetNullValue=''}" Margin="0,4,0,10"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                        <TextBlock Text="Carga % (opcional)" Style="{StaticResource DimText}"/>
+                        <TextBox Text="{Binding LoadPercent, TargetNullValue=''}" Margin="0,4,0,10"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2">
+                        <TextBlock Text="Prioridad" Style="{StaticResource DimText}"/>
+                        <TextBox Text="{Binding Priority}" Margin="0,4,0,10"/>
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Text="DNS interno del relay (opcional)" Style="{StaticResource DimText}"/>
+                <TextBox Text="{Binding InternalDns}" Margin="0,4,0,10"/>
+
+                <CheckBox Content="Relay activo (participa en la selección)" IsChecked="{Binding IsEnabled}"/>
+            </StackPanel>
+        </ScrollViewer>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="Guardar" Style="{StaticResource AccentButton}" Click="Save_Click" Margin="0,0,8,0" MinWidth="100"/>
+            <Button Content="Cancelar" Click="Cancel_Click" MinWidth="100"/>
+        </StackPanel>
+    </Grid>
+</Window>

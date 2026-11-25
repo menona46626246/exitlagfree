@@ -1,0 +1,98 @@
+<UserControl x:Class="GameRouteOptimizer.App.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel>
+        <TextBlock Text="Configuración" Style="{StaticResource HeaderText}"/>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+            <Button Content="Guardar configuración" Style="{StaticResource AccentButton}" Command="{Binding SaveCommand}" Margin="0,0,8,0"/>
+            <Button Content="Comprobar servicio / WireGuard" Command="{Binding CheckServiceCommand}" Margin="0,0,8,0"/>
+            <Button Content="Activar kill switch" Style="{StaticResource DangerButton}" Command="{Binding EnableKillSwitchCommand}" Margin="0,0,8,0"/>
+            <Button Content="Desactivar kill switch" Command="{Binding DisableKillSwitchCommand}"/>
+        </StackPanel>
+
+        <Border Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+            <StackPanel>
+                <TextBlock Text="Servicio y WireGuard" Style="{StaticResource DimText}"/>
+                <TextBlock Text="{Binding ServiceStatus}" Style="{StaticResource BodyText}" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding WireGuardStatus}" Style="{StaticResource BodyText}" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <Grid Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Probing -->
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0">
+                <StackPanel>
+                    <TextBlock Text="Probing (medición)" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <TextBlock Text="Intervalo entre probes (ms)" Style="{StaticResource DimText}"/>
+                    <TextBox Text="{Binding ProbeIntervalMs}" Margin="0,3,0,8"/>
+                    <TextBlock Text="Timeout por probe (ms)" Style="{StaticResource DimText}"/>
+                    <TextBox Text="{Binding ProbeTimeoutMs}" Margin="0,3,0,8"/>
+                    <TextBlock Text="Intervalo de monitoreo (ms)" Style="{StaticResource DimText}"/>
+                    <TextBox Text="{Binding MonitorIntervalMs}" Margin="0,3,0,8"/>
+                    <TextBlock Text="Máximo de probes por segundo (anti-saturación)" Style="{StaticResource DimText}"/>
+                    <TextBox Text="{Binding MaxProbesPerSecond}" Margin="0,3,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Auto-switch -->
+            <Border Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <TextBlock Text="Auto-optimización (anti-flapping)" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <CheckBox Content="Cambios automáticos de ruta" IsChecked="{Binding AutoSwitchEnabled}"/>
+                    <TextBlock Text="Mejora mínima de latencia para cambiar (ms)" Style="{StaticResource DimText}" Margin="0,6,0,0"/>
+                    <TextBox Text="{Binding MinImprovementLatencyMs}" Margin="0,3,0,8"/>
+                    <TextBlock Text="Cooldown entre cambios (segundos)" Style="{StaticResource DimText}"/>
+                    <TextBox Text="{Binding SwitchCooldownSeconds}" Margin="0,3,0,8"/>
+                    <TextBlock Text="Máximo de cambios por hora" Style="{StaticResource DimText}"/>
+                    <TextBox Text="{Binding MaxSwitchesPerHour}" Margin="0,3,0,8"/>
+                    <CheckBox Content="Volver a directa si el túnel cae (failback)" IsChecked="{Binding FailbackOnTunnelDown}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Grid Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Túnel -->
+            <Border Style="{StaticResource CardBorder}" Margin="0,0,8,0">
+                <StackPanel>
+                    <TextBlock Text="Túnel y red" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <TextBlock Text="MTU (1200–1500; 1380 recomendado)" Style="{StaticResource DimText}"/>
+                    <TextBox Text="{Binding TunnelMtu}" Margin="0,3,0,8"/>
+                    <TextBlock Text="DNS del túnel (vacío = el del relay)" Style="{StaticResource DimText}"/>
+                    <TextBox Text="{Binding TunnelDns}" Margin="0,3,0,8"/>
+                    <TextBlock Text="Reintentos de conexión (backoff exponencial)" Style="{StaticResource DimText}"/>
+                    <TextBox Text="{Binding MaxReconnectAttempts}" Margin="0,3,0,8"/>
+                    <TextBlock Text="Umbral de pérdida extrema (%) que excluye rutas" Style="{StaticResource DimText}"/>
+                    <TextBox Text="{Binding ExtremeLossThresholdPct}" Margin="0,3,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Seguridad -->
+            <Border Style="{StaticResource CardBorder}">
+                <StackPanel>
+                    <TextBlock Text="Privacidad, seguridad y detección" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <CheckBox Content="Modo seguro (solo diagnóstico, nunca aplica túneles)" IsChecked="{Binding SafeMode}"/>
+                    <CheckBox Content="Autorizo escanear carpetas para detectar juegos (solo nombres de .exe)"
+                              IsChecked="{Binding AllowGameScan}" Margin="0,4,0,0"/>
+                    <TextBlock Text="Carpetas a escanear (una por línea)" Style="{StaticResource DimText}" Margin="0,6,0,0"/>
+                    <TextBox Text="{Binding GameScanRoots}" Height="60" AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto" Margin="0,3,0,8"/>
+                    <CheckBox Content="Confirmo haber revisado los ToS de mis juegos sobre VPN/routing"
+                              IsChecked="{Binding UserAcknowledgedGameToS}"/>
+                    <TextBlock Text="Esta app no tiene telemetría, cuentas, pagos ni publicidad. Los logs son locales. Las claves privadas se cifran con DPAPI (Windows)."
+                               Style="{StaticResource DimText}" Margin="0,10,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </StackPanel>
+</UserControl>

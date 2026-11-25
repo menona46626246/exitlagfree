@@ -1,0 +1,183 @@
+<UserControl x:Class="GameRouteOptimizer.App.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:GameRouteOptimizer.App.Controls"
+             xmlns:conv="clr-namespace:GameRouteOptimizer.App.Converters">
+    <UserControl.Resources>
+        <conv:PingTextConverter x:Key="PingText"/>
+        <conv:LossTextConverter x:Key="LossText"/>
+        <conv:StateTextConverter x:Key="StateText"/>
+    </UserControl.Resources>
+
+    <StackPanel>
+        <!-- ============================================================= -->
+        <!--  HUD PRINCIPAL: BANNER DE JUEGO Y ESTADO ESTILO EXITLAG       -->
+        <!-- ============================================================= -->
+        <Border Style="{StaticResource GamerCard}" Margin="0,0,0,16" Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Info del Juego y Ruta -->
+                <StackPanel VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Border Background="{StaticResource AccentGradient}" CornerRadius="4" Padding="6,2" Margin="0,0,10,0">
+                            <TextBlock Text="RUTAS EN VIVO" Foreground="#FFFFFF" FontWeight="Black" FontSize="10"/>
+                        </Border>
+                        <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="1" CornerRadius="12" Padding="10,2">
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="8" Height="8" Fill="{StaticResource AccentBrush}" Margin="0,0,6,0"/>
+                                <TextBlock Text="{Binding StateText}" Foreground="{StaticResource TextBrush}"
+                                           FontWeight="Bold" FontSize="11"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <TextBlock Text="{Binding ActiveGame, StringFormat='JUEGO: {0}'}"
+                               FontSize="26" FontWeight="Black" Foreground="{StaticResource TextBrush}"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                        <TextBlock Text="Ruta seleccionada:" Style="{StaticResource DimText}" Margin="0,0,6,0"/>
+                        <TextBlock Text="{Binding SelectedRoute}" Foreground="{StaticResource AccentBrush}"
+                                   FontWeight="SemiBold" FontSize="12"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Botones de Acción Estilo ExitLag -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Center" Orientation="Horizontal">
+                    <Button Content="⚡ OPTIMIZAR RUTAS" Style="{StaticResource AccentButton}"
+                            Command="{Binding OptimizeCommand}"
+                            MinWidth="160" Height="46" FontSize="13" Margin="0,0,10,0"/>
+                    <Button Content="DETENER" Command="{Binding StopCommand}"
+                            MinWidth="100" Height="46" FontSize="12"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ============================================================= -->
+        <!--  MÉTRICAS DE RENDIMIENTO (COMPARATIVA ANTES VS DESPUÉS)       -->
+        <!-- ============================================================= -->
+        <UniformGrid Columns="5" Margin="0,0,0,16">
+            <!-- Ping Directo -->
+            <Border Style="{StaticResource GamerCard}" Margin="0,0,10,0" Padding="14">
+                <StackPanel>
+                    <TextBlock Text="PING DIRECTO" Foreground="{StaticResource TextDimBrush}"
+                               FontWeight="Bold" FontSize="10"/>
+                    <TextBlock Text="{Binding DirectPing, Converter={StaticResource PingText}}"
+                               Style="{StaticResource StatText}" FontSize="28" Margin="0,4,0,0"/>
+                    <TextBlock Text="Ruta estándar de tu ISP" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Ping Optimizado -->
+            <Border Style="{StaticResource GamerCard}" Margin="0,0,10,0" Padding="14"
+                    BorderBrush="{StaticResource AccentBrush}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="PING TÚNEL" Foreground="{StaticResource SuccessBrush}"
+                                   FontWeight="Bold" FontSize="10"/>
+                        <Border Background="{StaticResource SuccessGlowBrush}" CornerRadius="3" Margin="6,0,0,0" Padding="4,1">
+                            <TextBlock Text="ÓPTIMO" Foreground="{StaticResource SuccessBrush}" FontSize="8" FontWeight="Bold"/>
+                        </Border>
+                    </StackPanel>
+                    <TextBlock Text="{Binding OptimizedPing, Converter={StaticResource PingText}}"
+                               Foreground="{StaticResource SuccessBrush}" FontSize="28" FontWeight="Black" Margin="0,4,0,0"/>
+                    <TextBlock Text="Mejor camino WireGuard" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Jitter -->
+            <Border Style="{StaticResource GamerCard}" Margin="0,0,10,0" Padding="14">
+                <StackPanel>
+                    <TextBlock Text="JITTER (VARIABILIDAD)" Foreground="{StaticResource TextDimBrush}"
+                               FontWeight="Bold" FontSize="10"/>
+                    <TextBlock Text="{Binding Jitter, Converter={StaticResource PingText}}"
+                               Style="{StaticResource StatText}" FontSize="28" Margin="0,4,0,0"/>
+                    <TextBlock Text="Estabilidad de señal" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Pérdida Directa -->
+            <Border Style="{StaticResource GamerCard}" Margin="0,0,10,0" Padding="14">
+                <StackPanel>
+                    <TextBlock Text="PÉRDIDA DIRECTA" Foreground="{StaticResource TextDimBrush}"
+                               FontWeight="Bold" FontSize="10"/>
+                    <TextBlock Text="{Binding DirectLoss, Converter={StaticResource LossText}}"
+                               Foreground="{StaticResource WarningBrush}" FontSize="28" FontWeight="Bold" Margin="0,4,0,0"/>
+                    <TextBlock Text="Paquetes descartados" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Pérdida Optimizada -->
+            <Border Style="{StaticResource GamerCard}" Padding="14">
+                <StackPanel>
+                    <TextBlock Text="PÉRDIDA EN TÚNEL" Foreground="{StaticResource TextDimBrush}"
+                               FontWeight="Bold" FontSize="10"/>
+                    <TextBlock Text="{Binding OptimizedLoss, Converter={StaticResource LossText}}"
+                               Foreground="{StaticResource CyanBrush}" FontSize="28" FontWeight="Bold" Margin="0,4,0,0"/>
+                    <TextBlock Text="Calidad de entrega" Foreground="{StaticResource TextMutedBrush}" FontSize="10" Margin="0,2,0,0"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <!-- ============================================================= -->
+        <!--  GRÁFICOS EN TIEMPO REAL CON ESTÉTICA NEÓN                    -->
+        <!-- ============================================================= -->
+        <Grid Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2.2*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Gráfico de Latencia -->
+            <Border Grid.Column="0" Style="{StaticResource GamerCard}" Margin="0,0,12,0" Padding="16">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                        <TextBlock Text="📈 LATENCIA EN TIEMPO REAL" Foreground="{StaticResource TextBrush}"
+                                   FontWeight="Bold" FontSize="12"/>
+                        <TextBlock Text=" (Curva de respuesta en milisegundos)" Foreground="{StaticResource TextDimBrush}" FontSize="11"/>
+                    </StackPanel>
+                    <controls:LatencyChart Series="{Binding LatencySeries}" SeriesName="Latencia en vivo" Unit=" ms" Height="230"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Gráfico de Pérdida de Paquetes -->
+            <Border Grid.Column="1" Style="{StaticResource GamerCard}" Padding="16">
+                <StackPanel>
+                    <TextBlock Text="📉 PÉRDIDA DE PAQUETES" Foreground="{StaticResource TextBrush}"
+                               FontWeight="Bold" FontSize="12" Margin="0,0,0,10"/>
+                    <controls:LatencyChart Series="{Binding LossSeries}" SeriesName="Pérdida" Unit="%" Height="230"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================= -->
+        <!--  TARJETA DE RECOMENDACIÓN Y HONESTIDAD DE RUTA                -->
+        <!-- ============================================================= -->
+        <Border Style="{StaticResource GamerCard}" Padding="18">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Width="36" Height="36" CornerRadius="8" Background="{StaticResource SurfaceAltBrush}"
+                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Margin="0,0,14,0" VerticalAlignment="Top">
+                    <TextBlock Text="💡" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="ANÁLISIS INTELIGENTE DE RUTA" Foreground="{StaticResource TextBrush}"
+                               FontWeight="Bold" FontSize="12"/>
+                    <TextBlock Text="{Binding Recommendation}" Style="{StaticResource BodyText}"
+                               FontSize="13" Margin="0,4,0,6" TextWrapping="Wrap"/>
+                    <TextBlock Text="Garantía de transparencia: Si tu conexión directa ya es la ruta más rápida física hacia el servidor del juego, GameRoute no activará ningún túnel para no aumentar tu latencia."
+                               Foreground="{StaticResource TextMutedBrush}" FontSize="11" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </StackPanel>
+</UserControl>

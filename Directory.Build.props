@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <WarningsNotAsErrors>NU1701</WarningsNotAsErrors>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NeutralLanguage>es</NeutralLanguage>
+    <Company>GameRoute Optimizer (proyecto de código abierto)</Company>
+    <Product>GameRoute Optimizer</Product>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+</Project>

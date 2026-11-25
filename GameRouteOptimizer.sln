@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{54C60BF4-5348-4CAB-9C8F-45345BF42D40}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameRouteOptimizer.Core", "src\GameRouteOptimizer.Core\GameRouteOptimizer.Core.csproj", "{C0E2E07C-36D4-4A9D-A14F-58B93B2BE04B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameRouteOptimizer.Service", "src\GameRouteOptimizer.Service\GameRouteOptimizer.Service.csproj", "{3C2F16CB-ECD2-4D48-8D0A-F505B000C1D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameRouteOptimizer.Cli", "src\GameRouteOptimizer.Cli\GameRouteOptimizer.Cli.csproj", "{B8E977F8-FFA0-4659-944F-F1AC2D0D84DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameRouteOptimizer.Tests", "src\GameRouteOptimizer.Tests\GameRouteOptimizer.Tests.csproj", "{F18E4736-4EEC-4F17-B0C9-1E4C9692B660}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameRouteOptimizer.App", "src\GameRouteOptimizer.App\GameRouteOptimizer.App.csproj", "{DDF50BCB-F569-4C7C-912F-02EE7F86D935}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C0E2E07C-36D4-4A9D-A14F-58B93B2BE04B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C0E2E07C-36D4-4A9D-A14F-58B93B2BE04B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C0E2E07C-36D4-4A9D-A14F-58B93B2BE04B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C0E2E07C-36D4-4A9D-A14F-58B93B2BE04B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C2F16CB-ECD2-4D48-8D0A-F505B000C1D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C2F16CB-ECD2-4D48-8D0A-F505B000C1D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C2F16CB-ECD2-4D48-8D0A-F505B000C1D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C2F16CB-ECD2-4D48-8D0A-F505B000C1D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8E977F8-FFA0-4659-944F-F1AC2D0D84DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8E977F8-FFA0-4659-944F-F1AC2D0D84DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8E977F8-FFA0-4659-944F-F1AC2D0D84DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8E977F8-FFA0-4659-944F-F1AC2D0D84DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F18E4736-4EEC-4F17-B0C9-1E4C9692B660}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F18E4736-4EEC-4F17-B0C9-1E4C9692B660}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F18E4736-4EEC-4F17-B0C9-1E4C9692B660}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F18E4736-4EEC-4F17-B0C9-1E4C9692B660}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DDF50BCB-F569-4C7C-912F-02EE7F86D935}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DDF50BCB-F569-4C7C-912F-02EE7F86D935}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DDF50BCB-F569-4C7C-912F-02EE7F86D935}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DDF50BCB-F569-4C7C-912F-02EE7F86D935}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C0E2E07C-36D4-4A9D-A14F-58B93B2BE04B} = {54C60BF4-5348-4CAB-9C8F-45345BF42D40}
+		{3C2F16CB-ECD2-4D48-8D0A-F505B000C1D1} = {54C60BF4-5348-4CAB-9C8F-45345BF42D40}
+		{B8E977F8-FFA0-4659-944F-F1AC2D0D84DB} = {54C60BF4-5348-4CAB-9C8F-45345BF42D40}
+		{F18E4736-4EEC-4F17-B0C9-1E4C9692B660} = {54C60BF4-5348-4CAB-9C8F-45345BF42D40}
+		{DDF50BCB-F569-4C7C-912F-02EE7F86D935} = {54C60BF4-5348-4CAB-9C8F-45345BF42D40}
+	EndGlobalSection
+EndGlobal

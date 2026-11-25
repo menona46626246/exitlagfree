@@ -1,0 +1,77 @@
+<UserControl x:Class="GameRouteOptimizer.App.Views.GamesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel>
+        <!-- Header -->
+        <Grid Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+                <TextBlock Text="BIBLIOTECA DE JUEGOS" Style="{StaticResource HeaderText}" Margin="0,0,0,4"/>
+                <TextBlock Text="Gestiona los perfiles de red, servidores y ejecutables de tus videojuegos."
+                           Style="{StaticResource DimText}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Barra de Herramientas Estilo ExitLag -->
+        <Border Style="{StaticResource GamerCard}" Margin="0,0,0,16" Padding="12,10">
+            <WrapPanel VerticalAlignment="Center">
+                <Button Content="➕ AÑADIR JUEGO" Style="{StaticResource AccentButton}"
+                        Command="{Binding AddCommand}" Margin="0,0,10,0"/>
+                <Button Content="🔍 DETECTAR INSTALADOS" Command="{Binding DetectCommand}" Margin="0,0,10,0"/>
+                <Button Content="✏️ EDITAR" Command="{Binding EditCommand}" Margin="0,0,10,0"/>
+                <Button Content="🗑️ ELIMINAR" Command="{Binding RemoveCommand}" Margin="0,0,10,0"/>
+                <Button Content="⚡ ¿EN EJECUCIÓN?" Command="{Binding IsRunningCommand}" Margin="0,0,10,0"/>
+                <Button Content="📥 IMPORTAR JSON" Command="{Binding ImportCommand}" Margin="0,0,10,0"/>
+                <Button Content="📤 EXPORTAR JSON" Command="{Binding ExportCommand}"/>
+            </WrapPanel>
+        </Border>
+
+        <!-- Lista de Juegos -->
+        <Border Style="{StaticResource GamerCard}" Padding="0">
+            <DataGrid ItemsSource="{Binding Profiles}" SelectedItem="{Binding Selected}" Height="440"
+                      BorderThickness="0">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Juego" Width="220">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Width="28" Height="28" CornerRadius="6" Background="{StaticResource SurfaceAltBrush}"
+                                            BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Margin="0,0,10,0">
+                                        <TextBlock Text="🎮" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" Foreground="{StaticResource TextBrush}"/>
+                                        <TextBlock Text="{Binding ExecutablesText}" Foreground="{StaticResource TextMutedBrush}" FontSize="11"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTextColumn Header="Servidores" Binding="{Binding Servers.Count}" Width="100"/>
+                    <DataGridTextColumn Header="Modo de Ruta" Binding="{Binding RoutingModeText}" Width="140"/>
+                    <DataGridTemplateColumn Header="Auto-Inicio" Width="110">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Background="{StaticResource SurfaceAltBrush}" CornerRadius="4" Padding="6,2" HorizontalAlignment="Left">
+                                    <TextBlock Text="{Binding AutoStartOptimization}" Foreground="{StaticResource TextDimBrush}" FontSize="11"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Notas" Binding="{Binding Notes}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+
+        <!-- Pie Informativo -->
+        <Border Background="{StaticResource SurfaceAltBrush}" BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1" CornerRadius="6" Margin="0,14,0,0" Padding="12,10">
+            <TextBlock Text="💡 Al añadir o editar un juego puedes configurar: ejecutables (.exe), servidores por IP o dominio, puertos de juego, modo de túnel (solo juego o global) y relay WireGuard preferido."
+                       Foreground="{StaticResource TextDimBrush}" FontSize="12" TextWrapping="Wrap"/>
+        </Border>
+    </StackPanel>
+</UserControl>

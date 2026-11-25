@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>GameRouteOptimizer.Service</RootNamespace>
+    <AssemblyName>GameRouteOptimizer.Service</AssemblyName>
+    <OutputType>Exe</OutputType>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <Description>Servicio elevado de GameRoute Optimizer: túneles, rutas, kill switch e IPC.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GameRouteOptimizer.Core\GameRouteOptimizer.Core.csproj" />
+  </ItemGroup>
+
+</Project>

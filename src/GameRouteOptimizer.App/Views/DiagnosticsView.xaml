@@ -1,0 +1,95 @@
+<UserControl x:Class="GameRouteOptimizer.App.Views.DiagnosticsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:GameRouteOptimizer.App.Converters">
+    <UserControl.Resources>
+        <conv:PingTextConverter x:Key="PingText"/>
+        <conv:LossTextConverter x:Key="LossText"/>
+    </UserControl.Resources>
+
+    <StackPanel>
+        <TextBlock Text="Diagnóstico (sin túnel, no requiere administrador)" Style="{StaticResource HeaderText}"/>
+
+        <!-- Objetivo -->
+        <Border Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="110"/>
+                    <ColumnDefinition Width="110"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                    <TextBlock Text="Dominio o IP del servidor (definido por ti)" Style="{StaticResource DimText}"/>
+                    <TextBox Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="0,0,8,0">
+                    <TextBlock Text="Puerto TCP" Style="{StaticResource DimText}"/>
+                    <TextBox Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Margin="0,0,8,0">
+                    <TextBlock Text="Protocolo" Style="{StaticResource DimText}"/>
+                    <ComboBox ItemsSource="{Binding ProtocolOptions}" SelectedItem="{Binding Protocol}" Margin="0,4,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="3">
+                    <TextBlock Text="Modo" Style="{StaticResource DimText}"/>
+                    <ComboBox ItemsSource="{Binding ModeOptions}" SelectedItem="{Binding Mode}" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+            <Button Content="Medir (ping/pérdida/jitter)" Style="{StaticResource AccentButton}" Command="{Binding RunProbeCommand}" Margin="0,0,8,0"/>
+            <Button Content="Traceroute" Command="{Binding RunTraceCommand}" Margin="0,0,8,0"/>
+            <Button Content="Comparar directa vs relays" Command="{Binding CompareCommand}"/>
+        </StackPanel>
+
+        <!-- Resumen de probes -->
+        <Border Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+            <StackPanel>
+                <TextBlock Text="Resultado de probes" Style="{StaticResource DimText}"/>
+                <UniformGrid Columns="4" Margin="0,6,0,4">
+                    <StackPanel>
+                        <TextBlock Text="Media" Style="{StaticResource DimText}"/>
+                        <TextBlock Text="{Binding MeanMs, Converter={StaticResource PingText}}" Style="{StaticResource StatText}" FontSize="24"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="p95" Style="{StaticResource DimText}"/>
+                        <TextBlock Text="{Binding P95, Converter={StaticResource PingText}}" Style="{StaticResource StatText}" FontSize="24"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="Pérdida" Style="{StaticResource DimText}"/>
+                        <TextBlock Text="{Binding Loss, Converter={StaticResource LossText}}" Style="{StaticResource StatText}" FontSize="24"/>
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="Jitter" Style="{StaticResource DimText}"/>
+                        <TextBlock Text="{Binding Jitter, Converter={StaticResource PingText}}" Style="{StaticResource StatText}" FontSize="24"/>
+                    </StackPanel>
+                </UniformGrid>
+                <TextBlock Text="{Binding ProbeResult}" Style="{StaticResource BodyText}" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Traceroute -->
+        <Border Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+            <StackPanel>
+                <TextBlock Text="Traceroute (saltos y cuellos de botella)" Style="{StaticResource DimText}"/>
+                <ListBox ItemsSource="{Binding HopLines}" Height="220" Margin="0,6,0,0"
+                         FontFamily="Consolas" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Comparación -->
+        <Border Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+            <StackPanel>
+                <TextBlock Text="Comparación de rutas (directa vs relays activos)" Style="{StaticResource DimText}"/>
+                <ListBox ItemsSource="{Binding ScoreLines}" Height="160" Margin="0,6,0,0"
+                         FontFamily="Consolas" ScrollViewer.HorizontalScrollBarVisibility="Auto"/>
+                <TextBlock Text="{Binding Recommendation}" Style="{StaticResource BodyText}" Margin="0,8,0,0" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <TextBlock Text="Las pruebas solo se envían a los endpoints que tú defines. Muchos servidores de juego bloquean ICMP: en ese caso la app cambia a TCP connect automáticamente y así lo indica."
+                   Style="{StaticResource DimText}" TextWrapping="Wrap"/>
+    </StackPanel>
+</UserControl>
