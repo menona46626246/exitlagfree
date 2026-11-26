@@ -15,7 +15,11 @@ public abstract class ObservableBase : INotifyPropertyChanged
 
     protected bool SetProperty<T>(ref T field, T value, [CallerMemberName] string? name = null)
     {
-        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        if (EqualityComparer<T>.Default.Equals(field, value))
+        {
+            return false;
+        }
+
         field = value;
         OnPropertyChanged(name);
         return true;
@@ -50,7 +54,11 @@ public sealed class AsyncRelayCommand(Func<Task> execute, Func<bool>? canExecute
 
     public async void Execute(object? parameter)
     {
-        if (_busy) return;
+        if (_busy)
+        {
+            return;
+        }
+
         _busy = true;
         RaiseCanExecuteChanged();
         try

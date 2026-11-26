@@ -23,7 +23,10 @@ public sealed class SessionViewModel : ViewModelBase
         svc.Sessions.EventRecorded += evt => DispatcherSafe(() =>
         {
             Events.Insert(0, evt);
-            while (Events.Count > 500) Events.RemoveAt(Events.Count - 1);
+            while (Events.Count > 500)
+            {
+                Events.RemoveAt(Events.Count - 1);
+            }
         });
 
         ExportMarkdownCommand = new RelayCommand(ExportMarkdown, () => _svc.Sessions.Current is not null);
@@ -32,7 +35,10 @@ public sealed class SessionViewModel : ViewModelBase
         RefreshHistoryCommand = new RelayCommand(() =>
         {
             History.Clear();
-            foreach (var s in _svc.Sessions.GetRecentSessions()) History.Add(s);
+            foreach (var s in _svc.Sessions.GetRecentSessions())
+            {
+                History.Add(s);
+            }
         });
     }
 
@@ -68,58 +74,92 @@ public sealed class SessionViewModel : ViewModelBase
     public ICommand ExportHistoryCommand { get; }
     public ICommand RefreshHistoryCommand { get; }
 
-    public event Action? RefreshRequested;
-
     private void ExportMarkdown()
     {
         var session = _svc.Sessions.Current;
-        if (session is null) return;
+        if (session is null)
+        {
+            return;
+        }
+
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
             Title = "Exportar informe de sesión (Markdown)",
             FileName = $"informe-{session.ProfileName}.md",
             Filter = "Markdown (*.md)|*.md"
         };
-        if (dialog.ShowDialog() is not true) return;
+        if (dialog.ShowDialog() is not true)
+        {
+            return;
+        }
+
         var path = _svc.Sessions.ExportReportMarkdown(session, Path.GetDirectoryName(dialog.FileName)!);
         var finalPath = Path.Combine(Path.GetDirectoryName(dialog.FileName)!, Path.GetFileName(path));
-        if (finalPath != dialog.FileName) File.Move(finalPath, dialog.FileName, overwrite: true);
+        if (finalPath != dialog.FileName)
+        {
+            File.Move(finalPath, dialog.FileName, overwrite: true);
+        }
+
         _svc.Notifications.Success($"Informe exportado: {dialog.FileName}");
     }
 
     private void ExportJson()
     {
         var session = _svc.Sessions.Current;
-        if (session is null) return;
+        if (session is null)
+        {
+            return;
+        }
+
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
             Title = "Exportar informe de sesión (JSON)",
             FileName = $"informe-{session.ProfileName}.json",
             Filter = "JSON (*.json)|*.json"
         };
-        if (dialog.ShowDialog() is not true) return;
+        if (dialog.ShowDialog() is not true)
+        {
+            return;
+        }
+
         var path = _svc.Sessions.ExportReportJson(session, Path.GetDirectoryName(dialog.FileName)!);
         var finalPath = Path.Combine(Path.GetDirectoryName(dialog.FileName)!, Path.GetFileName(path));
-        if (finalPath != dialog.FileName) File.Move(finalPath, dialog.FileName, overwrite: true);
+        if (finalPath != dialog.FileName)
+        {
+            File.Move(finalPath, dialog.FileName, overwrite: true);
+        }
+
         _svc.Notifications.Success($"Informe exportado: {dialog.FileName}");
     }
 
     private void ExportHistoryReport()
     {
-        if (SelectedHistory is null) return;
+        if (SelectedHistory is null)
+        {
+            return;
+        }
+
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
             Title = "Exportar informe histórico (Markdown)",
             FileName = $"informe-hist-{SelectedHistory.Id[..8]}.md",
             Filter = "Markdown (*.md)|*.md"
         };
-        if (dialog.ShowDialog() is not true) return;
+        if (dialog.ShowDialog() is not true)
+        {
+            return;
+        }
+
         var loaded = new SessionRecord { Id = SelectedHistory.Id };
         // Rehidratar eventos del histórico para el informe completo.
         loaded = Rehydrate(SelectedHistory);
         var path = _svc.Sessions.ExportReportMarkdown(loaded, Path.GetDirectoryName(dialog.FileName)!);
         var finalPath = Path.Combine(Path.GetDirectoryName(dialog.FileName)!, Path.GetFileName(path));
-        if (finalPath != dialog.FileName) File.Move(finalPath, dialog.FileName, overwrite: true);
+        if (finalPath != dialog.FileName)
+        {
+            File.Move(finalPath, dialog.FileName, overwrite: true);
+        }
+
         _svc.Notifications.Success($"Informe exportado: {dialog.FileName}");
     }
 

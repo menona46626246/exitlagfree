@@ -22,7 +22,10 @@ public sealed class RelaysViewModel : ViewModelBase
         svc.Relays.RelayRemoved += id => DispatcherSafe(() =>
         {
             var item = Relays.FirstOrDefault(r => r.Id == id);
-            if (item is not null) Relays.Remove(item);
+            if (item is not null)
+            {
+                Relays.Remove(item);
+            }
         });
 
         AddCommand = new RelayCommand(Add);
@@ -58,7 +61,11 @@ public sealed class RelaysViewModel : ViewModelBase
     public void Reload()
     {
         Relays.Clear();
-        foreach (var r in _svc.Relays.Relays) Relays.Add(r);
+        foreach (var r in _svc.Relays.Relays)
+        {
+            Relays.Add(r);
+        }
+
         OnPropertyChanged(nameof(Relays));
     }
 
@@ -68,18 +75,30 @@ public sealed class RelaysViewModel : ViewModelBase
         RequestEdit?.Invoke(relay);
     }
 
-    private void Edit() { if (Selected is { } r) RequestEdit?.Invoke(r); }
+    private void Edit() { if (Selected is { } r)
+        {
+            RequestEdit?.Invoke(r);
+        }
+    }
 
     private void Remove()
     {
-        if (Selected is null) return;
+        if (Selected is null)
+        {
+            return;
+        }
+
         _svc.Relays.Remove(Selected.Id);
         _svc.Notifications.Info($"Relay '{Selected.Name}' eliminado.");
     }
 
     private async Task MeasureAsync()
     {
-        if (Selected is null) return;
+        if (Selected is null)
+        {
+            return;
+        }
+
         IsBusy = true;
         BusyText = $"Midiendo '{Selected.Name}'…";
         var relay = Selected;
@@ -98,7 +117,11 @@ public sealed class RelaysViewModel : ViewModelBase
     private void ImportJson()
     {
         var dialog = new OpenFileDialog { Title = "Importar relays", Filter = "JSON (*.json)|*.json|Todos (*.*)|*.*" };
-        if (dialog.ShowDialog() is not true) return;
+        if (dialog.ShowDialog() is not true)
+        {
+            return;
+        }
+
         try
         {
             var count = _svc.Relays.ImportRelaysJson(File.ReadAllText(dialog.FileName));
@@ -118,7 +141,11 @@ public sealed class RelaysViewModel : ViewModelBase
             FileName = "relays.json",
             Filter = "JSON (*.json)|*.json"
         };
-        if (dialog.ShowDialog() is not true) return;
+        if (dialog.ShowDialog() is not true)
+        {
+            return;
+        }
+
         File.WriteAllText(dialog.FileName, _svc.Relays.ExportRelaysJson(includeSecretRefs: false));
         _svc.Notifications.Success("Relays exportados sin referencias a claves privadas.");
     }
@@ -126,7 +153,11 @@ public sealed class RelaysViewModel : ViewModelBase
     private void ImportWireGuardConf()
     {
         var dialog = new OpenFileDialog { Title = "Importar configuración WireGuard (.conf)", Filter = "WireGuard (*.conf)|*.conf|Texto (*.txt)|*.txt" };
-        if (dialog.ShowDialog() is not true) return;
+        if (dialog.ShowDialog() is not true)
+        {
+            return;
+        }
+
         try
         {
             var relay = _svc.Relays.ImportWireGuardConfig(File.ReadAllText(dialog.FileName),
@@ -141,7 +172,11 @@ public sealed class RelaysViewModel : ViewModelBase
 
     private void Toggle()
     {
-        if (Selected is null) return;
+        if (Selected is null)
+        {
+            return;
+        }
+
         _svc.Relays.SetEnabled(Selected.Id, !Selected.IsEnabled);
     }
 

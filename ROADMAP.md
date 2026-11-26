@@ -9,7 +9,7 @@
   desactivado por defecto) que mida relay→servidor con sondas autorizadas y cierre el
   dato "desconocido" (mejora D5).
 - [ ] **Gráfica de comparación antes/después** superpuesta en la vista de Sesión.
-- [ ] **Wizard de primera ejecución** (añadir juego → detectar servidor → elegir relay).
+- [x] **Wizard de primera ejecución** (modo diagnóstico sin VPS, configuración rápida de perfil y prueba en vivo).
 - [ ] **Notificaciones toast nativas de Windows** para cambios de ruta y caídas.
 - [ ] Pruebas de integración end-to-end del IPC con el Servicio en CI Windows runner.
 

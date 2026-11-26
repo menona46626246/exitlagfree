@@ -154,7 +154,11 @@ public sealed class SettingsViewModel : ViewModelBase
 
     private async Task EnableKillSwitchAsync()
     {
-        if (!ConfirmKillSwitch()) return;
+        if (!ConfirmKillSwitch())
+        {
+            return;
+        }
+
         var response = await _svc.ServiceTunnel.SendAsync(new Core.Ipc.IpcMessage(Core.Ipc.IpcMessage.EnableKillSwitch, new { }), 30000);
         ReportKillSwitch(response, "activado");
     }

@@ -94,7 +94,10 @@ public sealed class RouteAnalyzer
         };
 
         if (summary.IsReachable && unknown)
+        {
             candidate.LatencyMs = total + 0; // el desconocido se penaliza en el score, no en la suma
+        }
+
         return candidate;
     }
 

@@ -101,7 +101,9 @@ public static class Program
 
         var target = new GameServer { Name = host, Domain = host, Ip = host, PreferredProtocol = protocol };
         if (protocol == ProbeProtocol.Tcp || protocol == ProbeProtocol.Udp)
+        {
             target.Ports.Add(port);
+        }
 
         Console.WriteLine($"Probe → {host} (protocolo {protocol}, modo {mode})…");
         var engine = new ProbeEngine();
@@ -121,7 +123,10 @@ public static class Program
         Console.WriteLine($"  Pérdida:       {s.LossRatio:P1}");
         Console.WriteLine($"  Jitter:        {s.JitterMs:0.0} ms");
         Console.WriteLine($"  Estabilidad:   {s.StabilityScore:0}/100");
-        if (!string.IsNullOrWhiteSpace(s.Notes)) Console.WriteLine($"  Nota:          {s.Notes}");
+        if (!string.IsNullOrWhiteSpace(s.Notes))
+        {
+            Console.WriteLine($"  Nota:          {s.Notes}");
+        }
     }
 
     // ---------- trace ----------
@@ -176,35 +181,42 @@ public static class Program
         {
             case "list":
                 foreach (var r in _relays.Relays)
+                {
                     Console.WriteLine($"  {r.Id[..8]}  {r.Name,-20} {r.EndpointHost}:{r.EndpointPort,-22} {r.Health,-8} {(r.IsEnabled ? "activo" : "inactivo")}");
-                if (_relays.Relays.Count == 0) Console.WriteLine("  (sin relays)");
+                }
+
+                if (_relays.Relays.Count == 0)
+                {
+                    Console.WriteLine("  (sin relays)");
+                }
+
                 return 0;
 
             case "add":
-            {
-                var name = Prompt("Nombre: ");
-                var host = Prompt("Endpoint host/IP: ");
-                var port = int.TryParse(Prompt("Puerto [51820]: "), out var pp) ? pp : 51820;
-                var pub = Prompt("Clave pública del peer: ");
-                var relay = new RelayNode { Name = name, EndpointHost = host, EndpointPort = port, PublicKey = pub };
-                var errors = relay.Validate();
-                if (errors.Count > 0) { Console.WriteLine("  Errores: " + string.Join(" ", errors)); return 1; }
-                _relays.Add(relay);
-                Console.WriteLine($"  Relay añadido: {relay.Id[..8]}");
-                return 0;
-            }
+                {
+                    var name = Prompt("Nombre: ");
+                    var host = Prompt("Endpoint host/IP: ");
+                    var port = int.TryParse(Prompt("Puerto [51820]: "), out var pp) ? pp : 51820;
+                    var pub = Prompt("Clave pública del peer: ");
+                    var relay = new RelayNode { Name = name, EndpointHost = host, EndpointPort = port, PublicKey = pub };
+                    var errors = relay.Validate();
+                    if (errors.Count > 0) { Console.WriteLine("  Errores: " + string.Join(" ", errors)); return 1; }
+                    _relays.Add(relay);
+                    Console.WriteLine($"  Relay añadido: {relay.Id[..8]}");
+                    return 0;
+                }
 
             case "test":
-            {
-                var relay = FindRelay(args.ElementAtOrDefault(1));
-                Console.WriteLine($"  Midiendo '{relay.Name}'…");
-                var prober = new RelayProber(new ProbeEngine());
-                var result = await prober.TestRelayAsync(relay);
-                Console.WriteLine($"  Alcanzable: {result.Reachable} · media {result.MeanMs:0.0} ms · pérdida {result.LossRatio:P1}");
-                Console.WriteLine($"  {result.Note}");
-                _relays.Update(relay);
-                return 0;
-            }
+                {
+                    var relay = FindRelay(args.ElementAtOrDefault(1));
+                    Console.WriteLine($"  Midiendo '{relay.Name}'…");
+                    var prober = new RelayProber(new ProbeEngine());
+                    var result = await prober.TestRelayAsync(relay);
+                    Console.WriteLine($"  Alcanzable: {result.Reachable} · media {result.MeanMs:0.0} ms · pérdida {result.LossRatio:P1}");
+                    Console.WriteLine($"  {result.Note}");
+                    _relays.Update(relay);
+                    return 0;
+                }
 
             case "remove":
                 _relays.Remove(FindRelay(args.ElementAtOrDefault(1)).Id);
@@ -212,20 +224,24 @@ public static class Program
                 return 0;
 
             case "import-wg":
-            {
-                var path = args.ElementAtOrDefault(1) ?? throw new ArgumentException("Falta la ruta del .conf");
-                var content = File.ReadAllText(path);
-                var relay = _relays.ImportWireGuardConfig(content, Path.GetFileNameWithoutExtension(path));
-                Console.WriteLine($"  Relay importado: {relay.Id[..8]} {relay.Name} (clave privada cifrada con {_ = ""}{new SecretProtector(Environment.GetEnvironmentVariable("GAMEROUTE_DATA") ?? PlatformInfo.DefaultDataDirectory()).Mechanism}).");
-                return 0;
-            }
+                {
+                    var path = args.ElementAtOrDefault(1) ?? throw new ArgumentException("Falta la ruta del .conf");
+                    var content = File.ReadAllText(path);
+                    var relay = _relays.ImportWireGuardConfig(content, Path.GetFileNameWithoutExtension(path));
+                    Console.WriteLine($"  Relay importado: {relay.Id[..8]} {relay.Name} (clave privada cifrada con {_ = ""}{new SecretProtector(Environment.GetEnvironmentVariable("GAMEROUTE_DATA") ?? PlatformInfo.DefaultDataDirectory()).Mechanism}).");
+                    return 0;
+                }
         }
         return 1;
     }
 
     private static RelayNode FindRelay(string? idPrefix)
     {
-        if (string.IsNullOrWhiteSpace(idPrefix)) throw new ArgumentException("Falta el id del relay.");
+        if (string.IsNullOrWhiteSpace(idPrefix))
+        {
+            throw new ArgumentException("Falta el id del relay.");
+        }
+
         var relay = _relays.Relays.FirstOrDefault(r => r.Id.StartsWith(idPrefix, StringComparison.OrdinalIgnoreCase))
                     ?? throw new KeyNotFoundException($"No existe relay con id que empiece por '{idPrefix}'.");
         return relay;
@@ -240,37 +256,44 @@ public static class Program
         {
             case "list":
                 foreach (var p in _profiles.Profiles)
+                {
                     Console.WriteLine($"  {p.Id[..8]}  {p.Name,-24} servidores: {p.Servers.Count}");
-                if (_profiles.Profiles.Count == 0) Console.WriteLine("  (sin perfiles)");
+                }
+
+                if (_profiles.Profiles.Count == 0)
+                {
+                    Console.WriteLine("  (sin perfiles)");
+                }
+
                 return 0;
 
             case "import":
-            {
-                var json = File.ReadAllText(args.ElementAtOrDefault(1) ?? throw new ArgumentException("Falta el archivo"));
-                var profile = _profiles.ImportProfileJson(json);
-                Console.WriteLine($"  Perfil importado: {profile.Id[..8]} {profile.Name}");
-                return 0;
-            }
+                {
+                    var json = File.ReadAllText(args.ElementAtOrDefault(1) ?? throw new ArgumentException("Falta el archivo"));
+                    var profile = _profiles.ImportProfileJson(json);
+                    Console.WriteLine($"  Perfil importado: {profile.Id[..8]} {profile.Name}");
+                    return 0;
+                }
 
             case "export":
-            {
-                var id = args.ElementAtOrDefault(1) ?? throw new ArgumentException("Falta el id");
-                var file = args.ElementAtOrDefault(2) ?? $"{id}.json";
-                var profile = _profiles.Profiles.FirstOrDefault(p => p.Id.StartsWith(id))
-                              ?? throw new KeyNotFoundException("Perfil no encontrado.");
-                File.WriteAllText(file, _profiles.ExportProfileJson(profile));
-                Console.WriteLine($"  Exportado a {file}");
-                return 0;
-            }
+                {
+                    var id = args.ElementAtOrDefault(1) ?? throw new ArgumentException("Falta el id");
+                    var file = args.ElementAtOrDefault(2) ?? $"{id}.json";
+                    var profile = _profiles.Profiles.FirstOrDefault(p => p.Id.StartsWith(id))
+                                  ?? throw new KeyNotFoundException("Perfil no encontrado.");
+                    File.WriteAllText(file, _profiles.ExportProfileJson(profile));
+                    Console.WriteLine($"  Exportado a {file}");
+                    return 0;
+                }
 
             case "validate":
-            {
-                var profile = _profiles.Profiles.FirstOrDefault(p => p.Id.StartsWith(args.ElementAtOrDefault(1) ?? ""))
-                              ?? throw new KeyNotFoundException("Perfil no encontrado.");
-                var errors = profile.Validate();
-                Console.WriteLine(errors.Count == 0 ? "  Perfil válido." : "  Errores: " + string.Join(" ", errors));
-                return errors.Count == 0 ? 0 : 1;
-            }
+                {
+                    var profile = _profiles.Profiles.FirstOrDefault(p => p.Id.StartsWith(args.ElementAtOrDefault(1) ?? ""))
+                                  ?? throw new KeyNotFoundException("Perfil no encontrado.");
+                    var errors = profile.Validate();
+                    Console.WriteLine(errors.Count == 0 ? "  Perfil válido." : "  Errores: " + string.Join(" ", errors));
+                    return errors.Count == 0 ? 0 : 1;
+                }
         }
         return 1;
     }
@@ -288,7 +311,11 @@ public static class Program
             if (errors.Count > 0)
             {
                 Console.WriteLine("Configuración INVÁLIDA:");
-                foreach (var e in errors) Console.WriteLine($"  - {e}");
+                foreach (var e in errors)
+                {
+                    Console.WriteLine($"  - {e}");
+                }
+
                 return 1;
             }
             Console.WriteLine("Configuración VÁLIDA.");
@@ -323,8 +350,13 @@ public static class Program
     private static string? GetOption(string[] args, string name)
     {
         for (var i = 0; i < args.Length - 1; i++)
+        {
             if (args[i].Equals(name, StringComparison.OrdinalIgnoreCase))
+            {
                 return args[i + 1];
+            }
+        }
+
         return null;
     }
 

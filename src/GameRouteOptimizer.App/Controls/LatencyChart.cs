@@ -71,8 +71,16 @@ public sealed class LatencyChart : FrameworkElement
     private static void OnSeriesChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
         var chart = (LatencyChart)d;
-        if (e.OldValue is INotifyCollectionChanged old) old.CollectionChanged -= chart.OnDataChanged;
-        if (e.NewValue is INotifyCollectionChanged neu) neu.CollectionChanged += chart.OnDataChanged;
+        if (e.OldValue is INotifyCollectionChanged old)
+        {
+            old.CollectionChanged -= chart.OnDataChanged;
+        }
+
+        if (e.NewValue is INotifyCollectionChanged neu)
+        {
+            neu.CollectionChanged += chart.OnDataChanged;
+        }
+
         chart.InvalidateVisual();
     }
 
@@ -83,7 +91,10 @@ public sealed class LatencyChart : FrameworkElement
     {
         var w = ActualWidth;
         var h = ActualHeight;
-        if (w < 10 || h < 10) return;
+        if (w < 10 || h < 10)
+        {
+            return;
+        }
 
         dc.DrawRoundedRectangle(BackBrush, new Pen(GridBrush, 1), new Rect(0, 0, w, h), 6, 6);
 
@@ -132,7 +143,11 @@ public sealed class LatencyChart : FrameworkElement
         using (var ctx = fill.Open())
         {
             ctx.BeginFigure(new Point(points[0].X, baseline), true, true);
-            foreach (var p in points) ctx.LineTo(p, true, false);
+            foreach (var p in points)
+            {
+                ctx.LineTo(p, true, false);
+            }
+
             ctx.LineTo(new Point(points[count - 1].X, baseline), true, false);
             ctx.LineTo(new Point(points[0].X, baseline), true, false);
         }
@@ -143,7 +158,10 @@ public sealed class LatencyChart : FrameworkElement
         using (var ctx = line.Open())
         {
             ctx.BeginFigure(points[0], false, false);
-            for (var i = 1; i < count; i++) ctx.LineTo(points[i], true, false);
+            for (var i = 1; i < count; i++)
+            {
+                ctx.LineTo(points[i], true, false);
+            }
         }
         dc.DrawGeometry(null, new Pen(LineBrush, 1.8), line);
 

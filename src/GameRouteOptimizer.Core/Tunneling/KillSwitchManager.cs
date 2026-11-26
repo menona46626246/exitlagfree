@@ -81,7 +81,11 @@ public sealed class KillSwitchManager
         var ok2 = await _firewall.DeleteRuleAsync(AllowWireGuardRule, ct);
         var ok3 = await _firewall.DeleteRuleAsync(AllowServiceRule, ct);
         IsActive = !(ok1 && ok2 && ok3) && await _firewall.RuleExistsAsync(BlockRuleName, ct);
-        if (!IsActive) IsActive = false;
+        if (!IsActive)
+        {
+            IsActive = false;
+        }
+
         var message = ok1 ? "Kill switch desactivado: red restaurada." : "No se pudo eliminar la regla de bloqueo (¿se creó manualmente?).";
         Log.Information(message);
         return message;

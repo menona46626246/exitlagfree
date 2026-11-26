@@ -25,6 +25,10 @@ public sealed class DashboardViewModel : ViewModelBase
         StopCommand = new RelayCommand(Stop, () => svc.Orchestrator.IsRunning);
         EmergencyStopCommand = new AsyncRelayCommand(EmergencyStopAsync);
 
+        _recommendation = svc.Relays.Relays.Count == 0
+            ? "Sin relays WireGuard configurados: modo diagnóstico listo (no requiere VPS ni administrador). Usa Diagnóstico o el Asistente inicial para medir ping, jitter, pérdida y traceroute reales."
+            : "Ejecuta un diagnóstico o pulsa 'Optimizar rutas' para comparar tu ruta directa frente a tus relays.";
+
         svc.Events.Subscribe<AppEvent>(OnAppEvent);
         svc.StateMachine.StateChanged += (_, next) =>
         {
@@ -127,15 +131,24 @@ public sealed class DashboardViewModel : ViewModelBase
         try
         {
             if (_svc.Orchestrator.IsRunning)
+            {
                 await _svc.Orchestrator.StopAsync("Emergencia");
+            }
+
             var response = await _svc.ServiceTunnel.SendAsync(
                 new Core.Ipc.IpcMessage(Core.Ipc.IpcMessage.EmergencyRestore, new { }));
             if (response is { Type: Core.Ipc.IpcMessage.Ok })
+            {
                 _svc.Notifications.Success("Red restaurada a la configuración original.");
+            }
             else if (response is not null)
+            {
                 _svc.Notifications.Error("El servicio respondió con error en la restauración.");
+            }
             else
+            {
                 _svc.Notifications.Warning("Servicio no disponible. Comandos manuales: ver docs/solucion-de-problemas.md");
+            }
         }
         catch (Exception ex)
         {
@@ -168,12 +181,23 @@ public sealed class DashboardViewModel : ViewModelBase
 
     private static void SyncSeries(ObservableCollection<double> target, IReadOnlyList<double> source)
     {
-        if (source.Count == target.Count) return;
-        if (source.Count < target.Count)
+        if (source.Count == target.Count)
         {
-            while (target.Count > source.Count) target.RemoveAt(target.Count - 1);
             return;
         }
-        for (var i = target.Count; i < source.Count; i++) target.Add(source[i]);
+
+        if (source.Count < target.Count)
+        {
+            while (target.Count > source.Count)
+            {
+                target.RemoveAt(target.Count - 1);
+            }
+
+            return;
+        }
+        for (var i = target.Count; i < source.Count; i++)
+        {
+            target.Add(source[i]);
+        }
     }
 }

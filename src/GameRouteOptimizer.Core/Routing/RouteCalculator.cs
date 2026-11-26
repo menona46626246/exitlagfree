@@ -73,7 +73,9 @@ public sealed class RouteCalculator
         };
 
         if (mode == RoutingMode.Direct)
+        {
             return plan;
+        }
 
         // Prefijos objetivo.
         var prefixes = new List<string>();
@@ -89,7 +91,9 @@ public sealed class RouteCalculator
             {
                 var ip = !string.IsNullOrWhiteSpace(server.ResolvedIp) ? server.ResolvedIp : server.Ip;
                 if (System.Net.IPAddress.TryParse(ip, out var parsed))
+                {
                     prefixes.Add($"{parsed}/32");
+                }
             }
         }
 
@@ -113,7 +117,10 @@ public sealed class RouteCalculator
         foreach (var prefix in plan.AddRoutes)
         {
             var entry = new RouteEntry(prefix, plan.TunnelAddress, plan.TunnelInterfaceIndex, plan.TunnelName, Metric: 1);
-            if (await _applier.AddRouteAsync(entry, ct)) applied++;
+            if (await _applier.AddRouteAsync(entry, ct))
+            {
+                applied++;
+            }
         }
         return applied;
     }
@@ -132,7 +139,10 @@ public sealed class RouteCalculator
         }
         foreach (var original in plan.OriginalRoutes)
         {
-            if (await _applier.AddRouteAsync(original, ct)) restored++;
+            if (await _applier.AddRouteAsync(original, ct))
+            {
+                restored++;
+            }
         }
         return restored;
     }
@@ -146,7 +156,9 @@ public sealed class RouteCalculator
             var idx = trimmed.IndexOf('/');
             var ipText = idx > 0 ? trimmed[..idx] : trimmed;
             if (IPAddress.TryParse(ipText, out var ip) && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            {
                 return ipText;
+            }
         }
         return null;
     }
@@ -154,29 +166,61 @@ public sealed class RouteCalculator
     /// <summary>¿La ruta `routeCidr` cubre el prefijo `target`? (misma dirección o superred).</summary>
     public static bool Covers(string routeCidr, string target)
     {
-        if (routeCidr == target) return true;
-        if (routeCidr == "0.0.0.0/0") return true;
+        if (routeCidr == target)
+        {
+            return true;
+        }
+
+        if (routeCidr == "0.0.0.0/0")
+        {
+            return true;
+        }
+
         try
         {
             var routeParts = routeCidr.Split('/');
             var targetParts = target.Split('/');
-            if (routeParts.Length != 2 || targetParts.Length != 2) return false;
-            if (!IPAddress.TryParse(routeParts[0], out var routeIp) || !IPAddress.TryParse(targetParts[0], out var targetIp)) return false;
-            if (routeIp.AddressFamily != targetIp.AddressFamily) return false;
+            if (routeParts.Length != 2 || targetParts.Length != 2)
+            {
+                return false;
+            }
+
+            if (!IPAddress.TryParse(routeParts[0], out var routeIp) || !IPAddress.TryParse(targetParts[0], out var targetIp))
+            {
+                return false;
+            }
+
+            if (routeIp.AddressFamily != targetIp.AddressFamily)
+            {
+                return false;
+            }
+
             var routePrefix = int.Parse(routeParts[1]);
             var targetPrefix = int.Parse(targetParts[1]);
-            if (routePrefix > targetPrefix) return false;
+            if (routePrefix > targetPrefix)
+            {
+                return false;
+            }
             // target está dentro de routeCidr si los primeros routePrefix bits coinciden.
             var routeBytes = routeIp.GetAddressBytes();
             var targetBytes = targetIp.GetAddressBytes();
             var fullBytes = routePrefix / 8;
             for (var i = 0; i < fullBytes && i < routeBytes.Length; i++)
-                if (routeBytes[i] != targetBytes[i]) return false;
+            {
+                if (routeBytes[i] != targetBytes[i])
+                {
+                    return false;
+                }
+            }
+
             var remBits = routePrefix % 8;
             if (remBits > 0 && fullBytes < routeBytes.Length)
             {
                 var mask = (byte)(0xFF << (8 - remBits));
-                if ((routeBytes[fullBytes] & mask) != (targetBytes[fullBytes] & mask)) return false;
+                if ((routeBytes[fullBytes] & mask) != (targetBytes[fullBytes] & mask))
+                {
+                    return false;
+                }
             }
             return true;
         }

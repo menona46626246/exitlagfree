@@ -148,7 +148,11 @@ public sealed class IpcTunnelManager : ITunnelManager
     public async Task<TunnelStatus> GetStatusAsync(CancellationToken ct = default)
     {
         var response = await SendAsync(new IpcMessage(IpcMessage.TunnelStatus, new { }));
-        if (response?.GetPayload<TunnelStatus>() is { } status) return status;
+        if (response?.GetPayload<TunnelStatus>() is { } status)
+        {
+            return status;
+        }
+
         return new TunnelStatus { State = TunnelState.Unknown, Detail = "Servicio no disponible." };
     }
 
@@ -177,7 +181,8 @@ public sealed class IpcTunnelManager : ITunnelManager
             return status;
         }
         var detail = response?.GetPayload<Dictionary<string, object>>()?.TryGetValue("message", out var m) == true
-            ? m.ToString() : "Servicio no disponible: instala el servicio (installer/install-service.ps1) y ejecútalo como administrador.";
+            ? (m?.ToString() ?? "Error en el servicio.")
+            : "Servicio no disponible: instala el servicio (installer/install-service.ps1) y ejecútalo como administrador.";
         return new TunnelStatus { State = TunnelState.Failed, TunnelName = request.TunnelName, Detail = detail };
     }
 

@@ -62,11 +62,26 @@ public sealed class RelayNode
     public List<string> Validate()
     {
         var errors = new List<string>();
-        if (string.IsNullOrWhiteSpace(Name)) errors.Add("El nombre del relay es obligatorio.");
-        if (string.IsNullOrWhiteSpace(EndpointHost)) errors.Add("El endpoint (host/IP) es obligatorio.");
-        if (EndpointPort is < 1 or > 65535) errors.Add("El puerto debe estar entre 1 y 65535.");
+        if (string.IsNullOrWhiteSpace(Name))
+        {
+            errors.Add("El nombre del relay es obligatorio.");
+        }
+
+        if (string.IsNullOrWhiteSpace(EndpointHost))
+        {
+            errors.Add("El endpoint (host/IP) es obligatorio.");
+        }
+
+        if (EndpointPort is < 1 or > 65535)
+        {
+            errors.Add("El puerto debe estar entre 1 y 65535.");
+        }
+
         if (!string.IsNullOrWhiteSpace(PublicKey) && !WireGuardKey.IsValidPublicKey(PublicKey))
+        {
             errors.Add("La clave pública no es un valor base64 de 32 bytes válido.");
+        }
+
         return errors;
     }
 }

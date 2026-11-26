@@ -42,13 +42,23 @@ public sealed class TracerouteResult
     /// <summary>Resumen en español con el cuello de botella más probable.</summary>
     public string Explain()
     {
-        if (Hops.Count == 0) return "No se obtuvieron saltos. Verifica conectividad y permisos ICMP.";
+        if (Hops.Count == 0)
+        {
+            return "No se obtuvieron saltos. Verifica conectividad y permisos ICMP.";
+        }
+
         var bottleneck = Hops.FirstOrDefault(h => h.SuspectedBottleneck);
         var last = Hops.Last();
         if (!last.Responded)
+        {
             return $"La ruta llega hasta el salto {last.Hop} sin alcanzar el destino; probable filtrado o caída más allá de ese punto.";
-        if (bottleneck.Responded)
+        }
+
+        if (bottleneck is { Responded: true })
+        {
             return $"Ruta completa en {Hops.Count} saltos. Mayor incremento de latencia en el salto {bottleneck.Hop} ({bottleneck.Address}, ~{bottleneck.MeanMs:F0} ms): posible cuello de botella.";
+        }
+
         return $"Ruta completa en {Hops.Count} saltos sin incrementos anómalos de latencia.";
     }
 }

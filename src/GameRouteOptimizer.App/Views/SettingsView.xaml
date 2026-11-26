@@ -8,7 +8,8 @@
             <Button Content="Guardar configuración" Style="{StaticResource AccentButton}" Command="{Binding SaveCommand}" Margin="0,0,8,0"/>
             <Button Content="Comprobar servicio / WireGuard" Command="{Binding CheckServiceCommand}" Margin="0,0,8,0"/>
             <Button Content="Activar kill switch" Style="{StaticResource DangerButton}" Command="{Binding EnableKillSwitchCommand}" Margin="0,0,8,0"/>
-            <Button Content="Desactivar kill switch" Command="{Binding DisableKillSwitchCommand}"/>
+            <Button Content="Desactivar kill switch" Command="{Binding DisableKillSwitchCommand}" Margin="0,0,8,0"/>
+            <Button Content="✨ Asistente inicial" Click="OpenWizard_Click"/>
         </StackPanel>
 
         <Border Style="{StaticResource CardBorder}" Margin="0,0,0,12">

@@ -131,17 +131,29 @@ public static class IpcFraming
         while (read < 4)
         {
             var n = await stream.ReadAsync(lenBuf.AsMemory(read, 4 - read), ct);
-            if (n == 0) return null;
+            if (n == 0)
+            {
+                return null;
+            }
+
             read += n;
         }
         var length = BitConverter.ToInt32(lenBuf, 0);
-        if (length is < 0 or > 4 * 1024 * 1024) throw new IOException("Frame IPC inválido (tamaño).");
+        if (length is < 0 or > 4 * 1024 * 1024)
+        {
+            throw new IOException("Frame IPC inválido (tamaño).");
+        }
+
         var body = new byte[length];
         read = 0;
         while (read < length)
         {
             var n = await stream.ReadAsync(body.AsMemory(read, length - read), ct);
-            if (n == 0) return null;
+            if (n == 0)
+            {
+                return null;
+            }
+
             read += n;
         }
         return JsonSerializer.Deserialize<IpcMessage>(Encoding.UTF8.GetString(body), IpcJson.Options);
@@ -166,7 +178,10 @@ public sealed class NamedPipeIpcServer : IDisposable
 
     public void RegisterHandler(string type, Func<IpcMessage, IpcMessage> handler)
     {
-        lock (_gate) _handlers[type] = handler;
+        lock (_gate)
+        {
+            _handlers[type] = handler;
+        }
     }
 
     public void Start()
@@ -205,7 +220,11 @@ public sealed class NamedPipeIpcServer : IDisposable
                 else
                 {
                     Func<IpcMessage, IpcMessage>? handler;
-                    lock (_gate) _handlers.TryGetValue(message.Type, out handler);
+                    lock (_gate)
+                    {
+                        _handlers.TryGetValue(message.Type, out handler);
+                    }
+
                     try
                     {
                         response = handler is not null

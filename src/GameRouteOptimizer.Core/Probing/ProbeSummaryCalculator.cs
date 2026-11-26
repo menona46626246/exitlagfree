@@ -16,7 +16,9 @@ public static class ProbeSummaryCalculator
     {
         var total = samples.Count;
         if (total == 0)
+        {
             return ProbeSummary.Unreachable(target, 0, "No se ejecutaron probes.");
+        }
 
         var successes = samples.Where(s => s.Success).Select(s => s.RttMs).OrderBy(v => v).ToList();
         var failures = total - successes.Count;
@@ -47,9 +49,13 @@ public static class ProbeSummaryCalculator
         summary.IcmpUnreliable = protocol == ProbeProtocol.Icmp &&
                                  successes.Count > 0 && failures > total / 2;
         if (summary.IcmpUnreliable)
+        {
             summary.Notes = "ICMP con alta pérdida: puede estar limitado por el servidor o la red; las métricas pueden no ser fiables.";
+        }
         else if (protocol != ProbeProtocol.Icmp)
+        {
             summary.Notes = $"Medido con {protocol} (TCP connect mide el handshake; el RTT de juego puede diferir).";
+        }
 
         return summary;
     }
@@ -57,8 +63,16 @@ public static class ProbeSummaryCalculator
     /// <summary>Percentil por interpolación lineal sobre lista ya ordenada.</summary>
     public static double Percentile(List<double> sorted, double p)
     {
-        if (sorted.Count == 0) return double.NaN;
-        if (sorted.Count == 1) return sorted[0];
+        if (sorted.Count == 0)
+        {
+            return double.NaN;
+        }
+
+        if (sorted.Count == 1)
+        {
+            return sorted[0];
+        }
+
         var idx = p * (sorted.Count - 1);
         var lo = (int)Math.Floor(idx);
         var hi = (int)Math.Ceiling(idx);
@@ -68,10 +82,17 @@ public static class ProbeSummaryCalculator
     public static double ComputeJitter(IReadOnlyList<ProbeSample> samples)
     {
         var consecutive = samples.Where(s => s.Success).Select(s => s.RttMs).ToList();
-        if (consecutive.Count < 2) return 0;
+        if (consecutive.Count < 2)
+        {
+            return 0;
+        }
+
         var diffs = new List<double>();
         for (var i = 1; i < consecutive.Count; i++)
+        {
             diffs.Add(Math.Abs(consecutive[i] - consecutive[i - 1]));
+        }
+
         return diffs.Average();
     }
 
@@ -93,7 +114,11 @@ public static class ProbeSummaryCalculator
     public static double ComputeTrendPerMinute(List<double> valuesInOrder)
     {
         var n = valuesInOrder.Count;
-        if (n < 5) return 0;
+        if (n < 5)
+        {
+            return 0;
+        }
+
         var xs = Enumerable.Range(0, n).Select(i => (double)i).ToList();
         var meanX = xs.Average();
         var meanY = valuesInOrder.Average();
@@ -104,7 +129,11 @@ public static class ProbeSummaryCalculator
             cov += (xs[i] - meanX) * (valuesInOrder[i] - meanY);
             varX += Math.Pow(xs[i] - meanX, 2);
         }
-        if (varX == 0) return 0;
+        if (varX == 0)
+        {
+            return 0;
+        }
+
         var slopePerSample = cov / varX;
         return slopePerSample * 60; // aproximación: 1 muestra ≈ 1 s
     }

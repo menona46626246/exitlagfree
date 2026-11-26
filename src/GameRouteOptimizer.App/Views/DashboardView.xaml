@@ -52,7 +52,10 @@
                             Command="{Binding OptimizeCommand}"
                             MinWidth="160" Height="46" FontSize="13" Margin="0,0,10,0"/>
                     <Button Content="DETENER" Command="{Binding StopCommand}"
-                            MinWidth="100" Height="46" FontSize="12"/>
+                            MinWidth="100" Height="46" FontSize="12" Margin="0,0,10,0"/>
+                    <Button Content="✨ ASISTENTE" Click="OpenWizard_Click"
+                            MinWidth="110" Height="46" FontSize="12"
+                            ToolTip="Abrir asistente inicial para configurar un perfil o probar latencia"/>
                 </StackPanel>
             </Grid>
         </Border>

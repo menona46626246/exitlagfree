@@ -214,7 +214,10 @@ public sealed class SessionDatabase : IDisposable
                 try
                 {
                     var summary = JsonSerializer.Deserialize<ProbeSummary>(reader.GetString(0), JsonOpts);
-                    if (summary is { IsReachable: true }) means.Add(summary.MeanMs);
+                    if (summary is { IsReachable: true })
+                    {
+                        means.Add(summary.MeanMs);
+                    }
                 }
                 catch { /* fila corrupta: se ignora */ }
             }
@@ -225,7 +228,11 @@ public sealed class SessionDatabase : IDisposable
     private static ProbeSummary? ReadSummary(SqliteDataReader reader, string column)
     {
         var ordinal = reader.GetOrdinal(column);
-        if (reader.IsDBNull(ordinal)) return null;
+        if (reader.IsDBNull(ordinal))
+        {
+            return null;
+        }
+
         try { return JsonSerializer.Deserialize<ProbeSummary>(reader.GetString(ordinal), JsonOpts); }
         catch { return null; }
     }

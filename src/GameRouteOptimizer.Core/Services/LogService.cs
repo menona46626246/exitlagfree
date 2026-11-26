@@ -53,22 +53,32 @@ public sealed class LogService
 
     public static void SetDefault(LogService service) => _default = service;
 
-    public ObservableCollection<LogEntry> RingBuffer { get { lock (Gate) return _ring; } }
+    public ObservableCollection<LogEntry> RingBuffer { get { lock (Gate) { return _ring; } } }
 
     public IReadOnlyList<LogEntry> Snapshot()
     {
-        lock (Gate) return _ring.ToArray();
+        lock (Gate)
+        {
+            return _ring.ToArray();
+        }
     }
 
     public void Write(LogLevel level, string message)
     {
-        if (level < _minLevel) return;
+        if (level < _minLevel)
+        {
+            return;
+        }
+
         var entry = new LogEntry(level, DateTimeOffset.Now, message);
 
         lock (Gate)
         {
             _ring.Add(entry);
-            while (_ring.Count > _ringCapacity) _ring.RemoveAt(0);
+            while (_ring.Count > _ringCapacity)
+            {
+                _ring.RemoveAt(0);
+            }
         }
 
         WriteToFile(entry);
@@ -83,7 +93,11 @@ public sealed class LogService
 
     private void WriteToFile(LogEntry entry)
     {
-        if (_logDirectory is null) return;
+        if (_logDirectory is null)
+        {
+            return;
+        }
+
         try
         {
             lock (Gate)
@@ -121,7 +135,10 @@ public sealed class LogService
 
     public void Clear()
     {
-        lock (Gate) _ring.Clear();
+        lock (Gate)
+        {
+            _ring.Clear();
+        }
     }
 }
 

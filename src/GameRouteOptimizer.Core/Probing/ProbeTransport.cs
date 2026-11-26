@@ -59,7 +59,11 @@ public sealed class DefaultProbeTransport : IProbeTransport
 
     public async Task<ProbeSample> TcpConnectAsync(string host, int port, int timeoutMs, CancellationToken ct)
     {
-        if (port is < 1 or > 65535) return ProbeSample.Fail("tcp", "puerto inválido");
+        if (port is < 1 or > 65535)
+        {
+            return ProbeSample.Fail("tcp", "puerto inválido");
+        }
+
         using var client = new TcpClient();
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         cts.CancelAfter(timeoutMs);

@@ -42,7 +42,11 @@ public sealed class OptimizerStateMachine
 
     public OptimizerState Current
     {
-        get { lock (_gate) return _state; }
+        get { lock (_gate)
+            {
+                return _state;
+            }
+        }
     }
 
     public event Action<OptimizerState, OptimizerState>? StateChanged;
@@ -64,7 +68,11 @@ public sealed class OptimizerStateMachine
             return false;
         }
 
-        lock (_gate) _state = next;
+        lock (_gate)
+        {
+            _state = next;
+        }
+
         Log.Information($"Estado: {previous} → {next}");
         _events.Publish(new AppEvent
         {
@@ -75,7 +83,10 @@ public sealed class OptimizerStateMachine
         });
         StateChanged?.Invoke(previous, next);
 
-        if (action is null) return true;
+        if (action is null)
+        {
+            return true;
+        }
 
         try
         {
@@ -94,7 +105,9 @@ public sealed class OptimizerStateMachine
                     await Task.CompletedTask;
                 });
                 if (Current == OptimizerState.Stopping)
+                {
                     await TransitionToAsync(OptimizerState.Idle);
+                }
             }
             return false;
         }
@@ -107,7 +120,9 @@ public sealed class OptimizerStateMachine
             {
                 await TransitionToAsync(OptimizerState.Stopping);
                 if (Current == OptimizerState.Stopping)
+                {
                     await TransitionToAsync(OptimizerState.Idle);
+                }
             }
             else if (CanTransitionTo(OptimizerState.Error))
             {

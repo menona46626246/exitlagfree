@@ -31,7 +31,11 @@ public sealed class SecretProtector : ISecretProtector
 
     public string Protect(string plaintext)
     {
-        if (string.IsNullOrEmpty(plaintext)) return string.Empty;
+        if (string.IsNullOrEmpty(plaintext))
+        {
+            return string.Empty;
+        }
+
         var plain = System.Text.Encoding.UTF8.GetBytes(plaintext);
         var protectedBytes = PlatformInfo.IsWindows
             ? DpapiProtect(plain)
@@ -41,7 +45,11 @@ public sealed class SecretProtector : ISecretProtector
 
     public string Unprotect(string ciphertext)
     {
-        if (string.IsNullOrEmpty(ciphertext)) return string.Empty;
+        if (string.IsNullOrEmpty(ciphertext))
+        {
+            return string.Empty;
+        }
+
         var data = Convert.FromBase64String(ciphertext);
         var plain = PlatformInfo.IsWindows ? DpapiUnprotect(data) : AesGcmUnprotect(data);
         return System.Text.Encoding.UTF8.GetString(plain);
@@ -78,7 +86,10 @@ public sealed class SecretProtector : ISecretProtector
         {
             if (!CryptProtectData(ref pIn, "GameRouteOptimizer", IntPtr.Zero, IntPtr.Zero, IntPtr.Zero,
                     CRYPTPROTECT_UI_FORBIDDEN, out var pOut))
+            {
                 throw new InvalidOperationException("DPAPI CryptProtectData falló.");
+            }
+
             return ReadAndFree(pOut);
         }
         finally
@@ -94,7 +105,10 @@ public sealed class SecretProtector : ISecretProtector
         {
             if (!CryptUnprotectData(ref pIn, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero,
                     CRYPTPROTECT_UI_FORBIDDEN, out var pOut))
+            {
                 throw new InvalidOperationException("DPAPI CryptUnprotectData falló.");
+            }
+
             return ReadAndFree(pOut);
         }
         finally
@@ -124,7 +138,11 @@ public sealed class SecretProtector : ISecretProtector
         }
     }
 
-    private static void Free(IntPtr ptr) { if (ptr != IntPtr.Zero) LocalFree(ptr); }
+    private static void Free(IntPtr ptr) { if (ptr != IntPtr.Zero)
+        {
+            LocalFree(ptr);
+        }
+    }
 
     // ---------- AES-GCM (Linux/macOS fallback) ----------
 
@@ -156,17 +174,24 @@ public sealed class SecretProtector : ISecretProtector
         if (File.Exists(_keyFilePath))
         {
             var key = File.ReadAllBytes(_keyFilePath);
-            if (key.Length == 32) return key;
+            if (key.Length == 32)
+            {
+                return key;
+            }
         }
         var newKey = RandomNumberGenerator.GetBytes(32);
         Directory.CreateDirectory(Path.GetDirectoryName(_keyFilePath)!);
         File.WriteAllBytes(_keyFilePath, newKey);
         try
         {
-            if (!PlatformInfo.IsWindows)
+            if (!OperatingSystem.IsWindows())
+            {
                 File.SetUnixFileMode(_keyFilePath, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+            }
             else
+            {
                 File.SetAttributes(_keyFilePath, FileAttributes.Hidden);
+            }
         }
         catch { /* best effort */ }
         return newKey;

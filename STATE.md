@@ -1,6 +1,6 @@
 # STATE.md — Estado del proyecto
 
-**Última actualización:** 2026-09-08 · **Versión:** 1.0.0 · **Entorno de desarrollo:** Debian 13 (CI) + Windows 10/11 (objetivo)
+**Última actualización:** 2026-11-25 · **Versión:** 1.0.0 · **Entorno de desarrollo:** Windows 10/11 + GitHub Actions CI (`windows-latest`)
 
 ## ✅ Completado
 
@@ -16,7 +16,7 @@
 | 7 — Monitoreo | SessionRecorder (SQLite), eventos, antes/después, informes Markdown/JSON, NotificationService | Tests de eventos, historial e informes |
 | 8 — Auto-optimización | HysteresisPolicy (umbral, cooldown, límite horario, consistencia), failback por caída y por calidad, failover entre relays | 8 tests de anti-flapping/failback |
 | Servicio + IPC | Servicio elevado con servidor IPC (ping/status/tunnel/routes/killswitch/emergency), snapshot de rutas, logging; cliente IPC en App/CLI | Compila; IPC test end-to-end (ping/pong) |
-| App WPF | UI española MVVM: Dashboard, Juegos (+diálogo), Relays (+diálogo), Diagnóstico, Sesión, Configuración, Logs; LatencyChart propio; tema oscuro; botón de emergencia | Escrita completa; **compilación requiere Windows** (D9) |
+| App WPF | UI española MVVM estilo oscuro/carmesí frameless: Dashboard, Juegos (+diálogo), Relays (+diálogo), Diagnóstico, Sesión, Configuración, Logs, Asistente inicial; LatencyChart propio; ícono `app.ico`; botón de emergencia | Compilada y smoke-testeada en Windows (`dist/GameRouteOptimizer.exe`) |
 | 10 — Tests y docs | **80/80 xUnit verdes**; README, PLAN, STATE, ROADMAP, ARCHITECTURE, SECURITY; 10 guías en `docs/`; ejemplos JSON; scripts build/install/pack | Ver sección Comandos |
 
 ## 🔄 En progreso
@@ -26,9 +26,9 @@
 ## ⏳ Pendiente (no bloquea la Definición de Completado)
 
 - [x] Compilar y smoke-testear la **App WPF** en Windows (`dotnet build GameRouteOptimizer.sln` y `dotnet run --project src/GameRouteOptimizer.App`). Resueltos los imports y clases duplicadas en el code-behind.
+- [x] `dotnet format` y limpieza de advertencias del compilador en toda la solución; CI configurado en `.github/workflows/ci.yml`.
 - Probar túnel real contra un relay WireGuard real (no existe relay en el entorno de
   desarrollo; el flujo está cubierto con simulados y validaciones reales).
-- `dotnet format` final sobre la App (análisis C# ya aplicado en los demás proyectos).
 
 ## 🚧 Bloqueos del entorno (con mitigación aplicada)
 

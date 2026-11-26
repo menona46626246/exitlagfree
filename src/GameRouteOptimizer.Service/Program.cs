@@ -109,7 +109,11 @@ public static class Program
     private static IpcMessage OnStartTunnel(IpcMessage msg)
     {
         var payload = msg.GetPayload<TunnelRequestPayload>();
-        if (payload?.Tunnel is null) return ErrorMsg("Petición de túnel sin configuración.");
+        if (payload?.Tunnel is null)
+        {
+            return ErrorMsg("Petición de túnel sin configuración.");
+        }
+
         try
         {
             WireGuardConfigParser.EnsureValid(payload.Tunnel);
@@ -141,9 +145,16 @@ public static class Program
 
     private static IpcMessage OnApplyRoutes(IpcMessage msg)
     {
-        if (!PrivilegedOps.HasPrivileges) return ErrorMsg("Sin privilegios para aplicar rutas (eleva el servicio).");
+        if (!PrivilegedOps.HasPrivileges)
+        {
+            return ErrorMsg("Sin privilegios para aplicar rutas (eleva el servicio).");
+        }
+
         var payload = msg.GetPayload<RoutesPayload>();
-        if (payload is null) return ErrorMsg("Petición de rutas vacía.");
+        if (payload is null)
+        {
+            return ErrorMsg("Petición de rutas vacía.");
+        }
 
         var plan = new RoutePlan
         {
@@ -155,28 +166,55 @@ public static class Program
         };
 
         var applied = _routeCalculator.ApplyPlanAsync(plan).GetAwaiter().GetResult();
-        lock (Gate) _activePlan = plan;
+        lock (Gate)
+        {
+            _activePlan = plan;
+        }
+
         SnapshotPlan(plan);
         return new IpcMessage(IpcMessage.Ok, new { applied, message = $"Rutas aplicadas: {applied}." });
     }
 
     private static IpcMessage OnRestoreRoutes(IpcMessage msg)
     {
-        if (!PrivilegedOps.HasPrivileges) return ErrorMsg("Sin privilegios para restaurar rutas.");
+        if (!PrivilegedOps.HasPrivileges)
+        {
+            return ErrorMsg("Sin privilegios para restaurar rutas.");
+        }
+
         RoutePlan? plan;
-        lock (Gate) plan = _activePlan;
-        if (plan is null) return new IpcMessage(IpcMessage.Ok, new { restored = 0, message = "No hay plan activo: nada que restaurar." });
+        lock (Gate)
+        {
+            plan = _activePlan;
+        }
+
+        if (plan is null)
+        {
+            return new IpcMessage(IpcMessage.Ok, new { restored = 0, message = "No hay plan activo: nada que restaurar." });
+        }
 
         var restored = _routeCalculator.RestorePlanAsync(plan).GetAwaiter().GetResult();
-        lock (Gate) _activePlan = null;
+        lock (Gate)
+        {
+            _activePlan = null;
+        }
+
         DeleteSnapshot();
         return new IpcMessage(IpcMessage.Ok, new { restored, message = $"Rutas restauradas ({restored} re-agregadas)." });
     }
 
     private static IpcMessage OnEnableKillSwitch(IpcMessage msg)
     {
-        if (!PlatformInfo.IsWindows) return ErrorMsg("El kill switch por firewall solo está implementado en Windows.");
-        if (!PrivilegedOps.HasPrivileges) return ErrorMsg("Sin privilegios para el kill switch.");
+        if (!PlatformInfo.IsWindows)
+        {
+            return ErrorMsg("El kill switch por firewall solo está implementado en Windows.");
+        }
+
+        if (!PrivilegedOps.HasPrivileges)
+        {
+            return ErrorMsg("Sin privilegios para el kill switch.");
+        }
+
         var message = _killSwitch.EnableAsync().GetAwaiter().GetResult();
         return new IpcMessage(IpcMessage.Ok, new { message });
     }
@@ -208,11 +246,19 @@ public static class Program
         try
         {
             RoutePlan? plan;
-            lock (Gate) plan = _activePlan;
+            lock (Gate)
+            {
+                plan = _activePlan;
+            }
+
             if (plan is not null)
             {
                 var restored = _routeCalculator.RestorePlanAsync(plan).GetAwaiter().GetResult();
-                lock (Gate) _activePlan = null;
+                lock (Gate)
+                {
+                    _activePlan = null;
+                }
+
                 DeleteSnapshot();
                 messages.Add($"Rutas restauradas ({restored}).");
             }
@@ -255,7 +301,10 @@ public static class Program
         try
         {
             var path = Path.Combine(GetDataDir(), StateFile);
-            if (File.Exists(path)) File.Delete(path);
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
         }
         catch { }
     }
@@ -263,12 +312,20 @@ public static class Program
     private static async Task RestoreSnapshotIfExistsAsync(string dataDir)
     {
         var path = Path.Combine(dataDir, StateFile);
-        if (!File.Exists(path)) return;
+        if (!File.Exists(path))
+        {
+            return;
+        }
+
         try
         {
             var json = File.ReadAllText(path);
             var plan = JsonSerializer.Deserialize<RoutePlan>(json, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-            if (plan is null) return;
+            if (plan is null)
+            {
+                return;
+            }
+
             Log.Warning("Snapshot de rutas previo encontrado: restaurando red a estado original…");
             await _routeCalculator.RestorePlanAsync(plan);
             File.Delete(path);
@@ -290,8 +347,16 @@ public static class Program
         {
             await _tunnelManager.StopAsync();
             RoutePlan? plan;
-            lock (Gate) plan = _activePlan;
-            if (plan is not null) await _routeCalculator.RestorePlanAsync(plan);
+            lock (Gate)
+            {
+                plan = _activePlan;
+            }
+
+            if (plan is not null)
+            {
+                await _routeCalculator.RestorePlanAsync(plan);
+            }
+
             await _killSwitch.DisableAsync();
             Log.Information("Servicio detenido; red restaurada.");
         }

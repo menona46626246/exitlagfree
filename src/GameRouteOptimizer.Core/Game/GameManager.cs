@@ -73,7 +73,10 @@ public sealed class GameManager
     {
         var results = new List<(string, string)>();
         var profiles = (candidates ?? _profiles.Profiles).Where(p => p.IsEnabled).ToList();
-        if (profiles.Count == 0) return results;
+        if (profiles.Count == 0)
+        {
+            return results;
+        }
 
         foreach (var root in roots.Where(Directory.Exists))
         {
@@ -91,7 +94,9 @@ public sealed class GameManager
                     var match = profiles.FirstOrDefault(p =>
                         p.Executables.Any(e => e.Trim().ToLowerInvariant() == name));
                     if (match is not null && !results.Any(r => r.Item1 == match.Id))
+                    {
                         results.Add((match.Id, file));
+                    }
                 }
             }
             catch (Exception ex)
@@ -105,7 +110,11 @@ public sealed class GameManager
     /// <summary>Inicia la vigilancia de arranque/cierre de juegos (para auto-start opcional).</summary>
     public void StartWatching(int intervalMs = 2000)
     {
-        if (_watchCts is not null) return;
+        if (_watchCts is not null)
+        {
+            return;
+        }
+
         _watchCts = new CancellationTokenSource();
         var token = _watchCts.Token;
         Task.Run(async () =>

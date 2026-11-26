@@ -28,14 +28,21 @@ public sealed class NotificationService : IDisposable
         lock (_gate)
         {
             _recent.Add(evt);
-            if (_recent.Count > MaxRecent) _recent.RemoveAt(0);
+            if (_recent.Count > MaxRecent)
+            {
+                _recent.RemoveAt(0);
+            }
         }
         try { NotificationArrived?.Invoke(evt); } catch { /* UI aislada */ }
     }
 
     public IReadOnlyList<AppEvent> Recent
     {
-        get { lock (_gate) return _recent.ToArray(); }
+        get { lock (_gate)
+            {
+                return _recent.ToArray();
+            }
+        }
     }
 
     public void Info(string message) => _events.Publish(new AppEvent { Severity = EventSeverity.Info, Message = message });

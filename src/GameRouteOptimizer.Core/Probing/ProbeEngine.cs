@@ -75,7 +75,9 @@ public sealed class ProbeEngine
 
         var protocol = target.PreferredProtocol;
         if (protocol == ProbeProtocol.Auto)
+        {
             protocol = await DetectBestProtocolAsync(host, target, limiter, ct);
+        }
 
         for (var i = 0; i < sampleCount; i++)
         {
@@ -99,11 +101,17 @@ public sealed class ProbeEngine
         {
             await limiter.WaitTurnAsync(ct);
             var icmp = await _transport.IcmpAsync(host, _options.TimeoutMs, ct);
-            if (icmp.Success) return ProbeProtocol.Icmp;
+            if (icmp.Success)
+            {
+                return ProbeProtocol.Icmp;
+            }
             // Un único fallo ICMP puede ser bloqueo o ruido; prueba una segunda vez.
             await limiter.WaitTurnAsync(ct);
             var icmp2 = await _transport.IcmpAsync(host, _options.TimeoutMs, ct);
-            if (icmp2.Success) return ProbeProtocol.Icmp;
+            if (icmp2.Success)
+            {
+                return ProbeProtocol.Icmp;
+            }
         }
         catch (ProbeUnsupportedException)
         {
@@ -111,10 +119,14 @@ public sealed class ProbeEngine
         }
 
         if (target.Ports.Count > 0)
+        {
             return ProbeProtocol.Tcp;
+        }
 
         if (!string.IsNullOrWhiteSpace(target.HealthUrl))
+        {
             return ProbeProtocol.Http;
+        }
 
         // Sin puertos ni health URL: se queda con ICMP aunque no responda (métricas no fiables).
         return ProbeProtocol.Icmp;
@@ -177,14 +189,24 @@ public sealed class DnsResolver
     public async Task<string?> ResolveAsync(GameServer target, CancellationToken ct)
     {
         if (!string.IsNullOrWhiteSpace(target.Ip) && IPAddress.TryParse(target.Ip, out _))
+        {
             return target.Ip;
+        }
 
-        if (string.IsNullOrWhiteSpace(target.Domain)) return null;
+        if (string.IsNullOrWhiteSpace(target.Domain))
+        {
+            return null;
+        }
+
         try
         {
             var host = target.Domain.Trim();
             // Si el dominio ya es una IP, devolverla directo.
-            if (IPAddress.TryParse(host, out var ip)) return ip.ToString();
+            if (IPAddress.TryParse(host, out var ip))
+            {
+                return ip.ToString();
+            }
+
             var entries = await Dns.GetHostAddressesAsync(host, ct);
             var v4 = entries.FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork)
                      ?? entries.FirstOrDefault();

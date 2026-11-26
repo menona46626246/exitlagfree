@@ -17,4 +17,8 @@
     <ProjectReference Include="..\GameRouteOptimizer.Core\GameRouteOptimizer.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="Exists('Resources\app.ico')">
+    <Resource Include="Resources\app.ico" />
+  </ItemGroup>
+
 </Project>

@@ -75,12 +75,26 @@ public sealed class GameProfile
     public List<string> Validate()
     {
         var errors = new List<string>();
-        if (string.IsNullOrWhiteSpace(Name)) errors.Add("El nombre del juego es obligatorio.");
+        if (string.IsNullOrWhiteSpace(Name))
+        {
+            errors.Add("El nombre del juego es obligatorio.");
+        }
+
         if (Executables.Count == 0 && string.IsNullOrWhiteSpace(ExecutablePath))
+        {
             errors.Add("Define al menos un ejecutable o la ruta del ejecutable.");
-        if (Servers.Count == 0) errors.Add("Añade al menos un servidor objetivo.");
+        }
+
+        if (Servers.Count == 0)
+        {
+            errors.Add("Añade al menos un servidor objetivo.");
+        }
+
         foreach (var s in Servers.Where(s => !s.IsValid))
+        {
             errors.Add($"El servidor '{s.Name}' necesita dominio o IP.");
+        }
+
         return errors;
     }
 }

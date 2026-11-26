@@ -41,16 +41,44 @@ public sealed class TunnelProfile
             ? $"PrivateKey = {SecretMasker.Mask(PrivateKey)}"
             : "PrivateKey = ***");
         sb.AppendLine($"Address = {Address}");
-        if (!string.IsNullOrWhiteSpace(Dns)) sb.AppendLine($"DNS = {Dns}");
-        if (Mtu > 0) sb.AppendLine($"MTU = {Mtu}");
-        if (ListenPort > 0) sb.AppendLine($"ListenPort = {ListenPort}");
+        if (!string.IsNullOrWhiteSpace(Dns))
+        {
+            sb.AppendLine($"DNS = {Dns}");
+        }
+
+        if (Mtu > 0)
+        {
+            sb.AppendLine($"MTU = {Mtu}");
+        }
+
+        if (ListenPort > 0)
+        {
+            sb.AppendLine($"ListenPort = {ListenPort}");
+        }
+
         sb.AppendLine();
         sb.AppendLine("[Peer]");
         sb.AppendLine($"PublicKey = {(string.IsNullOrWhiteSpace(PublicKey) ? "(vacía)" : PublicKey)}");
-        if (!string.IsNullOrWhiteSpace(PresharedKey)) sb.AppendLine("PresharedKey = ***");
-        if (AllowedIps.Count > 0) sb.AppendLine($"AllowedIPs = {string.Join(", ", AllowedIps)}");
-        if (!string.IsNullOrWhiteSpace(Endpoint)) sb.AppendLine($"Endpoint = {Endpoint}");
-        if (PersistentKeepalive > 0) sb.AppendLine($"PersistentKeepalive = {PersistentKeepalive}");
+        if (!string.IsNullOrWhiteSpace(PresharedKey))
+        {
+            sb.AppendLine("PresharedKey = ***");
+        }
+
+        if (AllowedIps.Count > 0)
+        {
+            sb.AppendLine($"AllowedIPs = {string.Join(", ", AllowedIps)}");
+        }
+
+        if (!string.IsNullOrWhiteSpace(Endpoint))
+        {
+            sb.AppendLine($"Endpoint = {Endpoint}");
+        }
+
+        if (PersistentKeepalive > 0)
+        {
+            sb.AppendLine($"PersistentKeepalive = {PersistentKeepalive}");
+        }
+
         return sb.ToString();
     }
 }

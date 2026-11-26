@@ -241,13 +241,17 @@ public class OrchestratorTests
         public Task<TunnelStatus> StartAsync(TunnelStartRequest request, CancellationToken ct = default)
         {
             StartCalls++;
-            return Task.FromResult(new TunnelStatus { State = NextState, TunnelName = request.TunnelName, Detail = "fake ok" });
+            var status = new TunnelStatus { State = NextState, TunnelName = request.TunnelName, Detail = "fake ok" };
+            StatusChanged?.Invoke(this, status);
+            return Task.FromResult(status);
         }
 
         public Task<TunnelStatus> StopAsync(CancellationToken ct = default)
         {
             StopCalls++;
-            return Task.FromResult(new TunnelStatus { State = TunnelState.Disconnected });
+            var status = new TunnelStatus { State = TunnelState.Disconnected };
+            StatusChanged?.Invoke(this, status);
+            return Task.FromResult(status);
         }
     }
 

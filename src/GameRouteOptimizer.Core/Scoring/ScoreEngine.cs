@@ -89,7 +89,11 @@ public sealed class ScoreEngine
         foreach (var candidate in candidates)
         {
             var s = scores.First(x => x.CandidateId == candidate.CandidateId);
-            if (s.Excluded) continue;
+            if (s.Excluded)
+            {
+                continue;
+            }
+
             if (bestScore is null || s.Value > bestScore.Value)
             {
                 bestScore = s;
@@ -180,8 +184,16 @@ public sealed class ScoreEngine
 
         // Confianza: muestras + fiabilidad ICMP + datos desconocidos.
         var confidence = 0.4 + Math.Min(candidate.SampleCount / 40.0, 1.0) * 0.6;
-        if (candidate.IcmpUnreliable) confidence -= 0.2;
-        if (candidate.RelayToGameUnknown) confidence -= 0.15;
+        if (candidate.IcmpUnreliable)
+        {
+            confidence -= 0.2;
+        }
+
+        if (candidate.RelayToGameUnknown)
+        {
+            confidence -= 0.15;
+        }
+
         confidence = Math.Clamp(confidence, 0, 1);
 
         return new RouteScore
@@ -199,7 +211,10 @@ public sealed class ScoreEngine
             ? $"Ruta directa con {candidate.LatencyMs:0.0} ms, pérdida {candidate.LossRatio:P1}, jitter {candidate.JitterMs:0.0} ms."
             : $"Relay '{candidate.DisplayName}': {candidate.LatencyMs:0.0} ms totales estimados, pérdida {candidate.LossRatio:P1}, jitter {candidate.JitterMs:0.0} ms.";
         if (penalties.Count > 0)
+        {
             baseText += " Penalizaciones: " + string.Join("; ", penalties) + ".";
+        }
+
         baseText += $" Score {score:0.0}/100.";
         return baseText;
     }
@@ -210,15 +225,29 @@ public sealed class ScoreEngine
         var viable = all.Where(c => !c.Unreachable && c.SampleCount > 0).ToList();
         var others = viable.Where(c => c.CandidateId != best.CandidateId).ToList();
         if (others.Count == 0)
+        {
             return best.IsDirect ? "Única ruta disponible: usar directa." : $"Única ruta viable: relay {best.DisplayName}.";
+        }
 
         var minLat = viable.Min(c => c.LatencyMs);
         var minLoss = viable.Min(c => c.LossRatio);
         var maxStab = viable.Max(c => c.StabilityScore);
 
-        if (best.LatencyMs == minLat) return "Mejor latencia disponible.";
-        if (best.LossRatio == minLoss) return "Menos pérdida de paquetes.";
-        if (best.StabilityScore == maxStab) return "Ruta más estable.";
+        if (best.LatencyMs == minLat)
+        {
+            return "Mejor latencia disponible.";
+        }
+
+        if (best.LossRatio == minLoss)
+        {
+            return "Menos pérdida de paquetes.";
+        }
+
+        if (best.StabilityScore == maxStab)
+        {
+            return "Ruta más estable.";
+        }
+
         return $"Mejor opción disponible (score {bestScore:0}/100).";
     }
 }

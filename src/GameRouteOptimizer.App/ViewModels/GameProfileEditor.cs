@@ -35,7 +35,11 @@ public sealed class GameProfileEditor : INotifyPropertyChanged
         {
             var opts = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() } };
             var servers = JsonSerializer.Deserialize<List<GameServer>>(_serversJson, opts);
-            if (servers is not null) _profile.Servers = servers;
+            if (servers is not null)
+            {
+                _profile.Servers = servers;
+            }
+
             ServersError = string.Empty;
         }
         catch (JsonException ex)

@@ -18,8 +18,15 @@ public sealed class LogsViewModel : ViewModelBase
         Entries = new ObservableCollection<LogEntry>(svc.Logs.Snapshot());
         svc.Logs.EntryAdded += entry => System.Windows.Application.Current?.Dispatcher.Invoke(() =>
         {
-            if (entry.Level >= Filter) Entries.Add(entry);
-            while (Entries.Count > 1000) Entries.RemoveAt(0);
+            if (entry.Level >= Filter)
+            {
+                Entries.Add(entry);
+            }
+
+            while (Entries.Count > 1000)
+            {
+                Entries.RemoveAt(0);
+            }
         });
 
         ExportCommand = new RelayCommand(Export);
@@ -33,9 +40,16 @@ public sealed class LogsViewModel : ViewModelBase
         get => _filter;
         set
         {
-            if (!SetProperty(ref _filter, value)) return;
+            if (!SetProperty(ref _filter, value))
+            {
+                return;
+            }
+
             Entries.Clear();
-            foreach (var e in _svc.Logs.Snapshot().Where(e => e.Level >= value)) Entries.Add(e);
+            foreach (var e in _svc.Logs.Snapshot().Where(e => e.Level >= value))
+            {
+                Entries.Add(e);
+            }
         }
     }
 
@@ -52,12 +66,20 @@ public sealed class LogsViewModel : ViewModelBase
             FileName = $"gameroute-logs-{DateTime.Now:yyyyMMdd-HHmmss}.log",
             Filter = "Log (*.log)|*.log|Texto (*.txt)|*.txt"
         };
-        if (dialog.ShowDialog() is not true) return;
+        if (dialog.ShowDialog() is not true)
+        {
+            return;
+        }
+
         var path = _svc.Logs.ExportTo(Path.GetDirectoryName(dialog.FileName)!);
         if (path is not null)
         {
             var target = Path.Combine(Path.GetDirectoryName(dialog.FileName)!, Path.GetFileName(path));
-            if (target != dialog.FileName) File.Move(target, dialog.FileName, overwrite: true);
+            if (target != dialog.FileName)
+            {
+                File.Move(target, dialog.FileName, overwrite: true);
+            }
+
             _svc.Notifications.Success($"Logs exportados: {dialog.FileName}");
         }
     }

@@ -33,7 +33,8 @@ public class ConfigStoreTests
             SwitchCooldownSeconds = 777,
             KillSwitchEnabled = true,
             TunnelMtu = 1360,
-            SafeMode = true
+            SafeMode = true,
+            OnboardingCompleted = true
         };
         store.Save(settings);
 
@@ -43,6 +44,7 @@ public class ConfigStoreTests
         Assert.True(loaded.KillSwitchEnabled);
         Assert.Equal(1360, loaded.TunnelMtu);
         Assert.True(loaded.SafeMode);
+        Assert.True(loaded.OnboardingCompleted);
     }
 
     [Fact]

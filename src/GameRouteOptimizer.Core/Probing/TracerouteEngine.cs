@@ -29,7 +29,9 @@ public sealed class TracerouteEngine
         var sw = Stopwatch.StartNew();
         var resolved = Resolve(host);
         if (resolved is null)
+        {
             return new TracerouteResult { Target = host, Method = "none", Duration = sw.Elapsed };
+        }
 
         try
         {
@@ -62,7 +64,10 @@ public sealed class TracerouteEngine
                 if (sample.Success || sample.Detail == "ttl-expired")
                 {
                     hop.Address = sample.Address ?? "*";
-                    if (sample.Success && sample.RttMs > 0) hop.RttSamplesMs.Add(sample.RttMs);
+                    if (sample.Success && sample.RttMs > 0)
+                    {
+                        hop.RttSamplesMs.Add(sample.RttMs);
+                    }
                 }
                 else
                 {
@@ -121,21 +126,44 @@ public sealed class TracerouteEngine
         foreach (var line in output.StdOut.Split('\n'))
         {
             var trimmed = line.Trim();
-            if (trimmed.Length == 0) continue;
+            if (trimmed.Length == 0)
+            {
+                continue;
+            }
             // Líneas de tracert/traceroute: "  1    1 ms   1 ms   2 ms  192.168.1.1" o " 1  192.168.1.1  1.2 ms"
             var match = System.Text.RegularExpressions.Regex.Match(trimmed, @"^\s*(\d+)[\s.]+(.*)$");
-            if (!match.Success || match.Groups[1].Value == "1" && trimmed.StartsWith("Tracing")) continue;
+            if (!match.Success || match.Groups[1].Value == "1" && trimmed.StartsWith("Tracing"))
+            {
+                continue;
+            }
+
             hopIndex++;
             var hop = new TracerouteHop { Hop = hopIndex };
             var ips = System.Text.RegularExpressions.Regex.Matches(trimmed, @"\b(?:\d{1,3}\.){3}\d{1,3}\b");
-            if (ips.Count > 0) hop.Address = ips[^1].Value;
-            else hop.Address = "*";
+            if (ips.Count > 0)
+            {
+                hop.Address = ips[^1].Value;
+            }
+            else
+            {
+                hop.Address = "*";
+            }
+
             var times = System.Text.RegularExpressions.Regex.Matches(trimmed, @"(\d+(?:\.\d+)?)\s*ms");
             foreach (var t in times)
+            {
                 if (double.TryParse(((System.Text.RegularExpressions.Match)t).Groups[1].Value,
                         System.Globalization.CultureInfo.InvariantCulture, out var ms))
+                {
                     hop.RttSamplesMs.Add(ms);
-            if (hop.Address == "*") hop.LostProbes = _samplesPerHop;
+                }
+            }
+
+            if (hop.Address == "*")
+            {
+                hop.LostProbes = _samplesPerHop;
+            }
+
             result.Hops.Add(hop);
         }
 
@@ -152,17 +180,28 @@ public sealed class TracerouteEngine
         double? prevMean = null;
         foreach (var hop in result.Hops)
         {
-            if (!hop.Responded) continue;
+            if (!hop.Responded)
+            {
+                continue;
+            }
+
             var mean = hop.MeanMs;
             if (prevMean.HasValue && mean > prevMean + 25 && mean > 60)
+            {
                 hop.SuspectedBottleneck = true;
+            }
+
             prevMean = mean;
         }
     }
 
     private static string? Resolve(string host)
     {
-        if (System.Net.IPAddress.TryParse(host, out var direct)) return direct.ToString();
+        if (System.Net.IPAddress.TryParse(host, out var direct))
+        {
+            return direct.ToString();
+        }
+
         try
         {
             var entries = System.Net.Dns.GetHostAddresses(host);

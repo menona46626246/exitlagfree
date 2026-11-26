@@ -22,7 +22,10 @@ public sealed class GamesViewModel : ViewModelBase
         svc.Profiles.ProfileRemoved += id => DispatcherSafe(() =>
         {
             var item = Profiles.FirstOrDefault(p => p.Id == id);
-            if (item is not null) Profiles.Remove(item);
+            if (item is not null)
+            {
+                Profiles.Remove(item);
+            }
         });
 
         AddCommand = new RelayCommand(Add);
@@ -56,7 +59,11 @@ public sealed class GamesViewModel : ViewModelBase
     public void Reload()
     {
         Profiles.Clear();
-        foreach (var p in _svc.Profiles.Profiles) Profiles.Add(p);
+        foreach (var p in _svc.Profiles.Profiles)
+        {
+            Profiles.Add(p);
+        }
+
         OnPropertyChanged(nameof(Profiles));
     }
 
@@ -66,11 +73,19 @@ public sealed class GamesViewModel : ViewModelBase
         RequestEdit?.Invoke(profile);
     }
 
-    private void Edit() { if (Selected is { } p) RequestEdit?.Invoke(p); }
+    private void Edit() { if (Selected is { } p)
+        {
+            RequestEdit?.Invoke(p);
+        }
+    }
 
     private void Remove()
     {
-        if (Selected is null) return;
+        if (Selected is null)
+        {
+            return;
+        }
+
         _svc.Profiles.Remove(Selected.Id);
         _svc.Notifications.Info($"Perfil '{Selected.Name}' eliminado.");
     }
@@ -92,14 +107,20 @@ public sealed class GamesViewModel : ViewModelBase
                 foreach (var (profileId, exePath) in found)
                 {
                     var profile = _svc.Profiles.GetById(profileId);
-                    if (profile is null) continue;
+                    if (profile is null)
+                    {
+                        continue;
+                    }
+
                     profile.ExecutablePath = exePath;
                     profile.Executables = [System.IO.Path.GetFileNameWithoutExtension(exePath)];
                     _svc.Profiles.Update(profile);
                     _svc.Notifications.Success($"'{profile.Name}' → {exePath}");
                 }
                 if (found.Count == 0)
+                {
                     _svc.Notifications.Info("No se encontraron ejecutables coincidentes en las carpetas configuradas.");
+                }
             });
         }
         finally
@@ -115,7 +136,11 @@ public sealed class GamesViewModel : ViewModelBase
             Title = "Importar perfil de juego",
             Filter = "JSON (*.json)|*.json|Todos (*.*)|*.*"
         };
-        if (dialog.ShowDialog() is not true) return;
+        if (dialog.ShowDialog() is not true)
+        {
+            return;
+        }
+
         try
         {
             var profile = _svc.Profiles.ImportProfileJson(File.ReadAllText(dialog.FileName));
@@ -129,21 +154,33 @@ public sealed class GamesViewModel : ViewModelBase
 
     private void Export()
     {
-        if (Selected is null) return;
+        if (Selected is null)
+        {
+            return;
+        }
+
         var dialog = new SaveFileDialog
         {
             Title = "Exportar perfil de juego",
             FileName = $"{Selected.Name}.json",
             Filter = "JSON (*.json)|*.json"
         };
-        if (dialog.ShowDialog() is not true) return;
+        if (dialog.ShowDialog() is not true)
+        {
+            return;
+        }
+
         File.WriteAllText(dialog.FileName, _svc.Profiles.ExportProfileJson(Selected));
         _svc.Notifications.Success($"Perfil exportado a {dialog.FileName} (sin secretos: los perfiles nunca los contienen).");
     }
 
     private void CheckRunning()
     {
-        if (Selected is null) return;
+        if (Selected is null)
+        {
+            return;
+        }
+
         var running = _svc.Games.IsProfileRunning(Selected, out var matched);
         _svc.Notifications.Info(running
             ? $"'{Selected.Name}' está EN EJECUCIÓN (proceso {matched})."

@@ -31,7 +31,11 @@ public sealed class ConfigStore
 
     public AppSettings Load()
     {
-        if (!File.Exists(_filePath)) return new AppSettings();
+        if (!File.Exists(_filePath))
+        {
+            return new AppSettings();
+        }
+
         try
         {
             var json = File.ReadAllText(_filePath);
@@ -55,7 +59,10 @@ public sealed class ConfigStore
     private static void Migrate(AppSettings settings)
     {
         // Migraciones de versión: por ahora solo se asegura la versión actual.
-        if (settings.Version < AppSettings.CurrentVersion) settings.Version = AppSettings.CurrentVersion;
+        if (settings.Version < AppSettings.CurrentVersion)
+        {
+            settings.Version = AppSettings.CurrentVersion;
+        }
     }
 
     internal static void WriteAtomic(string path, string content)
@@ -68,8 +75,14 @@ public sealed class ConfigStore
         Directory.CreateDirectory(dir);
         var tmp = path + ".tmp";
         File.WriteAllText(tmp, content);
-        if (File.Exists(path)) File.Replace(tmp, path, null);
-        else File.Move(tmp, path);
+        if (File.Exists(path))
+        {
+            File.Replace(tmp, path, null);
+        }
+        else
+        {
+            File.Move(tmp, path);
+        }
     }
 }
 
@@ -110,7 +123,11 @@ public sealed class DataStore
 
     private static List<T> LoadList<T>(string path)
     {
-        if (!File.Exists(path)) return new List<T>();
+        if (!File.Exists(path))
+        {
+            return new List<T>();
+        }
+
         try
         {
             var json = File.ReadAllText(path);

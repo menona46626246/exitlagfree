@@ -34,20 +34,38 @@ public sealed class EventBus
     public void Subscribe<T>(Action<T> handler)
     {
         var list = _handlers.GetOrAdd(typeof(T), _ => new List<Delegate>());
-        lock (list) list.Add(handler);
+        lock (list)
+        {
+            list.Add(handler);
+        }
     }
 
     public void Unsubscribe<T>(Action<T> handler)
     {
-        if (!_handlers.TryGetValue(typeof(T), out var list)) return;
-        lock (list) list.Remove(handler);
+        if (!_handlers.TryGetValue(typeof(T), out var list))
+        {
+            return;
+        }
+
+        lock (list)
+        {
+            list.Remove(handler);
+        }
     }
 
     public void Publish<T>(T evt)
     {
-        if (!_handlers.TryGetValue(typeof(T), out var list)) return;
+        if (!_handlers.TryGetValue(typeof(T), out var list))
+        {
+            return;
+        }
+
         Delegate[] snapshot;
-        lock (list) snapshot = list.ToArray();
+        lock (list)
+        {
+            snapshot = list.ToArray();
+        }
+
         foreach (var d in snapshot)
         {
             try

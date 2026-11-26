@@ -83,8 +83,13 @@ public sealed class WireGuardTunnelManager : ITunnelManager
                 "wireguard.exe"
             };
             foreach (var c in candidates)
+            {
                 if (File.Exists(c) || (c == "wireguard.exe" && PlatformInfo.CommandExists("wireguard.exe")))
+                {
                     return c;
+                }
+            }
+
             return candidates[0];
         }
         return PlatformInfo.CommandExists("wg-quick") ? "wg-quick" : "wg-quick";
@@ -108,7 +113,9 @@ public sealed class WireGuardTunnelManager : ITunnelManager
     {
         var name = _lastStatus.TunnelName;
         if (string.IsNullOrWhiteSpace(name) || _lastStatus.State is TunnelState.Disconnected or TunnelState.Unknown or TunnelState.Failed)
+        {
             return Task.FromResult(_lastStatus);
+        }
 
         var show = CommandRunner.Run("wg", new[] { "show", name }, 10_000);
         var status = ParseWgShow(show.StdOut, _lastStatus);
@@ -138,9 +145,13 @@ public sealed class WireGuardTunnelManager : ITunnelManager
                 var text = line["latest handshake:".Length..].Trim();
                 status.SecondsSinceHandshake = ParseHandshakeSeconds(text);
                 if (status.SecondsSinceHandshake is >= 0 and < 180)
+                {
                     status.State = TunnelState.Connected;
+                }
                 else if (status.SecondsSinceHandshake >= 180)
+                {
                     status.State = TunnelState.Reconnecting;
+                }
             }
             else if (line.StartsWith("transfer:"))
             {
@@ -157,7 +168,10 @@ public sealed class WireGuardTunnelManager : ITunnelManager
             }
         }
         if (status.State == TunnelState.Unknown && previous.State == TunnelState.Connecting)
+        {
             status.State = TunnelState.Connecting;
+        }
+
         status.Timestamp = DateTimeOffset.UtcNow;
         return status;
     }
@@ -166,7 +180,11 @@ public sealed class WireGuardTunnelManager : ITunnelManager
     {
         // "1 minute, 2 seconds ago" (inglés) o "hace 1 minuto" — parse robusto de números + unidad.
         var match = System.Text.RegularExpressions.Regex.Match(text, @"(\d+)\s*(second|segundo|minute|minuto|hour|hora)");
-        if (!match.Success) return -1;
+        if (!match.Success)
+        {
+            return -1;
+        }
+
         var value = double.Parse(match.Groups[1].Value);
         return match.Groups[2].Value.StartsWith("second") || match.Groups[2].Value.StartsWith("segundo")
             ? value
@@ -176,7 +194,11 @@ public sealed class WireGuardTunnelManager : ITunnelManager
     private static long ParseTransfer(string text)
     {
         var match = System.Text.RegularExpressions.Regex.Match(text, @"([\d.]+)\s*(B|KiB|MiB|GiB)");
-        if (!match.Success) return 0;
+        if (!match.Success)
+        {
+            return 0;
+        }
+
         var value = double.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
         return match.Groups[2].Value switch
         {
@@ -249,7 +271,9 @@ public sealed class WireGuardTunnelManager : ITunnelManager
     {
         var name = _lastStatus.TunnelName;
         if (string.IsNullOrWhiteSpace(name))
+        {
             return _lastStatus;
+        }
 
         SetStatus(new TunnelStatus { State = TunnelState.Stopping, TunnelName = name, Endpoint = _lastStatus.Endpoint });
 
@@ -285,22 +309,37 @@ public sealed class WireGuardTunnelManager : ITunnelManager
         conf.AppendLine("[Interface]");
         conf.AppendLine($"PrivateKey = {request.Tunnel.PrivateKey}");
         conf.AppendLine($"Address = {request.Tunnel.Address}");
-        if (!string.IsNullOrWhiteSpace(request.Tunnel.Dns)) conf.AppendLine($"DNS = {request.Tunnel.Dns}");
+        if (!string.IsNullOrWhiteSpace(request.Tunnel.Dns))
+        {
+            conf.AppendLine($"DNS = {request.Tunnel.Dns}");
+        }
+
         conf.AppendLine($"MTU = {(request.Mtu > 0 ? request.Mtu : request.Tunnel.Mtu)}");
         conf.AppendLine();
         conf.AppendLine("[Peer]");
         conf.AppendLine($"PublicKey = {request.Tunnel.PublicKey}");
         if (request.Tunnel.AllowedIps.Count > 0)
+        {
             conf.AppendLine($"AllowedIPs = {string.Join(", ", request.Tunnel.AllowedIps)}");
+        }
+
         if (!string.IsNullOrWhiteSpace(request.Tunnel.Endpoint))
+        {
             conf.AppendLine($"Endpoint = {request.Tunnel.Endpoint}");
+        }
+
         if (request.Tunnel.PersistentKeepalive > 0)
+        {
             conf.AppendLine($"PersistentKeepalive = {request.Tunnel.PersistentKeepalive}");
+        }
+
         File.WriteAllText(path, conf.ToString());
         try
         {
-            if (!PlatformInfo.IsWindows)
+            if (!OperatingSystem.IsWindows())
+            {
                 File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+            }
         }
         catch { /* best effort */ }
         return path;

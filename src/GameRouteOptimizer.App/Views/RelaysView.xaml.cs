@@ -17,24 +17,39 @@ public partial class RelaysView : UserControl
         DataContextChanged += (_, _) =>
         {
             _vm = DataContext as RelaysViewModel;
-            if (_vm is not null) _vm.RequestEdit += OpenEditor;
+            if (_vm is not null)
+            {
+                _vm.RequestEdit += OpenEditor;
+            }
         };
     }
 
     private void OpenEditor(RelayNode relay)
     {
-        if (AppServices.Current is null) return;
+        if (AppServices.Current is null)
+        {
+            return;
+        }
+
         var existed = AppServices.Current.Relays.Relays.Any(r => r.Id == relay.Id);
         var dialog = new RelayDialog(relay) { Owner = Window.GetWindow(this) };
-        if (dialog.ShowDialog() is not true) return;
+        if (dialog.ShowDialog() is not true)
+        {
+            return;
+        }
 
         try
         {
             var toSave = dialog.EditedRelay;
             if (existed)
+            {
                 AppServices.Current.Relays.Update(toSave);
+            }
             else
+            {
                 AppServices.Current.Relays.Add(toSave);
+            }
+
             AppServices.Current.Notifications.Success($"Relay '{toSave.Name}' guardado.");
             _vm?.Reload();
         }

@@ -84,7 +84,11 @@ public sealed class DiagnosticsViewModel : ViewModelBase
 
     private GameServer BuildTarget()
     {
-        if (string.IsNullOrWhiteSpace(Host)) throw new ArgumentException("Escribe un dominio o IP a diagnosticar.");
+        if (string.IsNullOrWhiteSpace(Host))
+        {
+            throw new ArgumentException("Escribe un dominio o IP a diagnosticar.");
+        }
+
         var target = new GameServer
         {
             Name = Host.Trim(),
@@ -92,7 +96,11 @@ public sealed class DiagnosticsViewModel : ViewModelBase
             Ip = System.Net.IPAddress.TryParse(Host.Trim(), out _) ? Host.Trim() : string.Empty,
             PreferredProtocol = Protocol
         };
-        if (int.TryParse(Port, out var port) && port is > 0 and < 65536) target.Ports.Add(port);
+        if (int.TryParse(Port, out var port) && port is > 0 and < 65536)
+        {
+            target.Ports.Add(port);
+        }
+
         return target;
     }
 
@@ -114,9 +122,14 @@ public sealed class DiagnosticsViewModel : ViewModelBase
             OnPropertyChanged(nameof(Jitter));
             OnPropertyChanged(nameof(P95));
             if (!summary.IsReachable)
+            {
                 ProbeResult += "\nSin respuesta: el endpoint no responde a este protocolo o está filtrado.";
+            }
+
             if (!string.IsNullOrWhiteSpace(summary.Notes))
+            {
                 ProbeResult += "\n" + summary.Notes;
+            }
         }
         finally
         {

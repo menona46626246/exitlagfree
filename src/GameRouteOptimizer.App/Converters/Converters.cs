@@ -28,10 +28,10 @@ public sealed class InverseBoolToVisibilityConverter : IValueConverter
 public sealed class InverseBoolConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is bool b ? !b : value;
+        => value is bool b ? !b : DependencyProperty.UnsetValue;
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is bool b ? !b : value;
+        => value is bool b ? !b : DependencyProperty.UnsetValue;
 }
 
 /// <summary>null o cadena vacía → Visibility.Collapsed.</summary>
@@ -88,7 +88,10 @@ public sealed class StateTextConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is Core.Models.OptimizerState s && Map.TryGetValue(s, out var text))
+        {
             return text;
+        }
+
         return value?.ToString() ?? "";
     }
 

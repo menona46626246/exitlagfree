@@ -20,17 +20,31 @@ public static class PrivilegedOps
     public static async Task<bool> AddRouteAsync(string cidr, string? gateway, int? interfaceIndex, int metric, CancellationToken ct = default)
     {
         var (dest, mask) = CidrToDestMask(cidr);
-        if (dest is null) return false;
+        if (dest is null)
+        {
+            return false;
+        }
 
         if (PlatformInfo.IsWindows)
         {
             var args = new List<string> { "interface", "ipv4", "add", "route",
                 $"{dest}/{PrefixOf(cidr)}", "store=active" };
-            if (!string.IsNullOrWhiteSpace(gateway)) args.Add($"nexthop={gateway}");
-            if (interfaceIndex is int idx) args.Add($"interface={idx}");
+            if (!string.IsNullOrWhiteSpace(gateway))
+            {
+                args.Add($"nexthop={gateway}");
+            }
+
+            if (interfaceIndex is int idx)
+            {
+                args.Add($"interface={idx}");
+            }
+
             args.Add($"metric={metric}");
             var result = await CommandRunner.RunAsync("netsh", args, 15_000, ct);
-            if (result.Success) return true;
+            if (result.Success)
+            {
+                return true;
+            }
             // Fallback clásico con `route add`.
             var routeArgs = new List<string> { "add", dest!, "mask", mask!, gateway ?? "0.0.0.0", "metric", metric.ToString() };
             if (interfaceIndex is int idx2) { routeArgs.Add("if"); routeArgs.Add(idx2.ToString()); }
@@ -56,12 +70,19 @@ public static class PrivilegedOps
     public static async Task<bool> DeleteRouteAsync(string cidr, string? gateway, int? interfaceIndex, CancellationToken ct = default)
     {
         var (dest, _) = CidrToDestMask(cidr);
-        if (dest is null) return false;
+        if (dest is null)
+        {
+            return false;
+        }
 
         if (PlatformInfo.IsWindows)
         {
             var result = await CommandRunner.RunAsync("netsh", new[] { "interface", "ipv4", "delete", "route", $"{dest}/{PrefixOf(cidr)}", "store=active" }, 15_000, ct);
-            if (result.Success) return true;
+            if (result.Success)
+            {
+                return true;
+            }
+
             var r2 = await CommandRunner.RunAsync("route", new[] { "delete", dest! }, 15_000, ct);
             LogOp($"route delete {dest}", r2);
             return r2.Success;
@@ -88,7 +109,11 @@ public static class PrivilegedOps
                 //          0.0.0.0          0.0.0.0      192.168.1.1    192.168.1.10     35
                 var m = System.Text.RegularExpressions.Regex.Match(line,
                     @"^(\d{1,3}(?:\.\d{1,3}){3})\s+(\d{1,3}(?:\.\d{1,3}){3})\s+(\d{1,3}(?:\.\d{1,3}){3})\s+(\d{1,3}(?:\.\d{1,3}){3})\s+(\d+)");
-                if (!m.Success) continue;
+                if (!m.Success)
+                {
+                    continue;
+                }
+
                 var dest = m.Groups[1].Value;
                 var mask = m.Groups[2].Value;
                 var gateway = m.Groups[3].Value == "On-link" ? null : m.Groups[3].Value;
@@ -103,16 +128,30 @@ public static class PrivilegedOps
             foreach (var line in result.StdOut.Split('\n'))
             {
                 var parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-                if (parts.Length == 0) continue;
+                if (parts.Length == 0)
+                {
+                    continue;
+                }
+
                 var cidr = parts[0] switch
                 {
                     "default" => "0.0.0.0/0",
                     _ => parts[0]
                 };
-                if (!cidr.Contains('/')) cidr += "/32";
+                if (!cidr.Contains('/'))
+                {
+                    cidr += "/32";
+                }
+
                 string? gateway = null;
                 for (var i = 1; i < parts.Length - 1; i++)
-                    if (parts[i] == "via") gateway = parts[i + 1];
+                {
+                    if (parts[i] == "via")
+                    {
+                        gateway = parts[i + 1];
+                    }
+                }
+
                 routes.Add((cidr, gateway, null));
             }
         }
@@ -124,7 +163,11 @@ public static class PrivilegedOps
     /// <summary>Establece DNS de un adaptador; devuelve los valores previos para restaurar.</summary>
     public static async Task<string[]?> SetDnsAsync(string interfaceName, string dns, CancellationToken ct = default)
     {
-        if (!PlatformInfo.IsWindows) return null;
+        if (!PlatformInfo.IsWindows)
+        {
+            return null;
+        }
+
         var prev = await CommandRunner.RunAsync("netsh", new[] { "interface", "ipv4", "show", "dnsservers", $"name={interfaceName}" }, 15_000, ct);
         var setResult = await CommandRunner.RunAsync("netsh", new[] { "interface", "ipv4", "set", "dnsservers", $"name={interfaceName}", "source=static", $"address={dns}", "register=primary" }, 15_000, ct);
         return setResult.Success ? prev.StdOut.Split('\n') : null;
@@ -133,17 +176,27 @@ public static class PrivilegedOps
     public static async Task FlushDnsAsync(CancellationToken ct = default)
     {
         if (PlatformInfo.IsWindows)
+        {
             await CommandRunner.RunAsync("ipconfig", new[] { "/flushdns" }, 15_000, ct);
+        }
     }
 
     // ---------- Firewall (kill switch) ----------
 
     public static async Task<bool> AddFirewallRuleAsync(string name, string? program, string direction, string action, CancellationToken ct = default)
     {
-        if (!PlatformInfo.IsWindows) return false;
+        if (!PlatformInfo.IsWindows)
+        {
+            return false;
+        }
+
         var args = new List<string> { "advfirewall", "firewall", "add", "rule",
             $"name={name}", $"dir={direction}", $"action={action}", "enable=yes" };
-        if (!string.IsNullOrWhiteSpace(program)) args.Add($"program={program}");
+        if (!string.IsNullOrWhiteSpace(program))
+        {
+            args.Add($"program={program}");
+        }
+
         var result = await CommandRunner.RunAsync("netsh", args, 20_000, ct);
         LogOp($"firewall add rule {name}", result);
         return result.Success;
@@ -151,7 +204,11 @@ public static class PrivilegedOps
 
     public static async Task<bool> DeleteFirewallRuleAsync(string name, CancellationToken ct = default)
     {
-        if (!PlatformInfo.IsWindows) return false;
+        if (!PlatformInfo.IsWindows)
+        {
+            return false;
+        }
+
         var result = await CommandRunner.RunAsync("netsh", new[] { "advfirewall", "firewall", "delete", "rule", $"name={name}" }, 20_000, ct);
         LogOp($"firewall delete rule {name}", result);
         return result.Success;
@@ -159,7 +216,11 @@ public static class PrivilegedOps
 
     public static async Task<bool> FirewallRuleExistsAsync(string name, CancellationToken ct = default)
     {
-        if (!PlatformInfo.IsWindows) return false;
+        if (!PlatformInfo.IsWindows)
+        {
+            return false;
+        }
+
         var result = await CommandRunner.RunAsync("netsh", new[] { "advfirewall", "firewall", "show", "rule", $"name={name}" }, 20_000, ct);
         return result.Success && result.StdOut.Contains(name, StringComparison.OrdinalIgnoreCase);
     }
@@ -169,7 +230,11 @@ public static class PrivilegedOps
     private static (string?, string?) CidrToDestMask(string cidr)
     {
         var parts = cidr.Split('/');
-        if (parts.Length == 0 || !System.Net.IPAddress.TryParse(parts[0], out var ip)) return (null, null);
+        if (parts.Length == 0 || !System.Net.IPAddress.TryParse(parts[0], out var ip))
+        {
+            return (null, null);
+        }
+
         var prefix = parts.Length == 2 && int.TryParse(parts[1], out var p) ? p : 32;
         var mask = PrefixToMask(prefix);
         return (ip.ToString(), mask);
@@ -196,16 +261,25 @@ public static class PrivilegedOps
     {
         var count = 0;
         foreach (var b in mask.Split('.'))
+        {
             if (byte.TryParse(b, out var v))
+            {
                 count += System.Numerics.BitOperations.PopCount(v);
+            }
+        }
+
         return count;
     }
 
     private static void LogOp(string op, CommandResult result)
     {
         if (result.Success)
+        {
             Core.Services.Log.Information($"Op privilegiada OK: {op}");
+        }
         else
+        {
             Core.Services.Log.Warning($"Op privilegiada falló: {op} → {result.StdErr.Trim()[..Math.Min(200, result.StdErr.Length)]}");
+        }
     }
 }

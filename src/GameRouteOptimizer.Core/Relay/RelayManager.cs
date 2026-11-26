@@ -55,9 +55,16 @@ public sealed class RelayManager
     public void Add(RelayNode relay)
     {
         var errors = relay.Validate();
-        if (errors.Count > 0) throw new ArgumentException(string.Join(" ", errors));
+        if (errors.Count > 0)
+        {
+            throw new ArgumentException(string.Join(" ", errors));
+        }
+
         if (_relays.Any(r => r.Id == relay.Id))
+        {
             throw new ArgumentException("Ya existe un relay con ese id.");
+        }
+
         _relays.Add(relay);
         Persist();
         RelayAdded?.Invoke(relay);
@@ -114,21 +121,35 @@ public sealed class RelayManager
         {
             throw new InvalidDataException("El archivo no es un JSON válido de relays.");
         }
-        if (relays is null || relays.Count == 0) return 0;
+        if (relays is null || relays.Count == 0)
+        {
+            return 0;
+        }
+
         var imported = 0;
         foreach (var relay in relays)
         {
             if (string.IsNullOrEmpty(relay.Id) || _relays.Any(r => r.Id == relay.Id))
+            {
                 relay.Id = Guid.NewGuid().ToString("N");
+            }
             // Las referencias a secretos de otra máquina no son válidas aquí.
             relay.PrivateKeyRef = string.Empty;
             var errors = relay.Validate();
-            if (errors.Count > 0) continue; // se omiten inválidos; el llamador informa el conteo
+            if (errors.Count > 0)
+            {
+                continue; // se omiten inválidos; el llamador informa el conteo
+            }
+
             _relays.Add(relay);
             RelayAdded?.Invoke(relay);
             imported++;
         }
-        if (imported > 0) Persist();
+        if (imported > 0)
+        {
+            Persist();
+        }
+
         return imported;
     }
 
@@ -141,11 +162,15 @@ public sealed class RelayManager
         var tunnel = WireGuardConfigParser.Parse(confContent);
         var errors = WireGuardConfigParser.Validate(tunnel);
         if (errors.Count > 0)
+        {
             throw new InvalidDataException("Configuración WireGuard inválida: " + string.Join(" ", errors));
+        }
 
         string keyRef = string.Empty;
         if (!string.IsNullOrWhiteSpace(tunnel.PrivateKey))
+        {
             keyRef = _secrets.Protect(tunnel.PrivateKey);
+        }
 
         var relay = new RelayNode
         {
@@ -165,7 +190,11 @@ public sealed class RelayManager
     /// <summary>Recupera la clave privada cifrada de un relay (solo para construir el túnel).</summary>
     public string? GetDecryptedPrivateKey(RelayNode relay)
     {
-        if (string.IsNullOrWhiteSpace(relay.PrivateKeyRef)) return null;
+        if (string.IsNullOrWhiteSpace(relay.PrivateKeyRef))
+        {
+            return null;
+        }
+
         try { return _secrets.Unprotect(relay.PrivateKeyRef); }
         catch
         {

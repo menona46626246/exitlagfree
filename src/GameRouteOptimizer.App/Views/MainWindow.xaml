@@ -8,6 +8,7 @@
         MinWidth="1020" MinHeight="660"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
+        Icon="pack://application:,,,/Resources/app.ico"
         Background="{StaticResource BgBrush}">
 
     <WindowChrome.WindowChrome>

@@ -177,7 +177,11 @@ public sealed class OptimizerOrchestrator : IDisposable
     {
         lock (_gate)
         {
-            if (IsRunning) throw new InvalidOperationException("Ya hay una optimización en curso. Detén primero.");
+            if (IsRunning)
+            {
+                throw new InvalidOperationException("Ya hay una optimización en curso. Detén primero.");
+            }
+
             _sessionCts = CancellationTokenSource.CreateLinkedTokenSource(externalCt);
         }
 
@@ -266,7 +270,9 @@ public sealed class OptimizerOrchestrator : IDisposable
 
         // 3) Advertencia de túnel global si corresponde.
         if (profile.RoutingMode == RoutingMode.TunnelGlobal)
+        {
             PublishWarning("El túnel será GLOBAL (todo tu tráfico pasará por el relay). Usa 'solo juego' si prefieres dividir.");
+        }
 
         // 4) Conexión del túnel (delegada al manager: local en Servicio/CLI, IPC desde la UI).
         await _stateMachine.TransitionToAsync(OptimizerState.Connecting, null, ct);
@@ -305,7 +311,9 @@ public sealed class OptimizerOrchestrator : IDisposable
             }, ct);
 
             if (status.IsConnected)
+            {
                 return status;
+            }
 
             PublishWarning($"Intento {attempt} falló: {status.Detail}. Reintento en {delayMs / 1000} s…");
             try { await Task.Delay(delayMs, ct); }
@@ -364,8 +372,15 @@ public sealed class OptimizerOrchestrator : IDisposable
                 {
                     Metrics.LatencySeries.Add(double.IsNaN(Metrics.OptimizedPingMs) ? 0 : Metrics.OptimizedPingMs);
                     Metrics.LossSeries.Add(optimized.LossRatio * 100);
-                    while (Metrics.LatencySeries.Count > 120) Metrics.LatencySeries.RemoveAt(0);
-                    while (Metrics.LossSeries.Count > 120) Metrics.LossSeries.RemoveAt(0);
+                    while (Metrics.LatencySeries.Count > 120)
+                    {
+                        Metrics.LatencySeries.RemoveAt(0);
+                    }
+
+                    while (Metrics.LossSeries.Count > 120)
+                    {
+                        Metrics.LossSeries.RemoveAt(0);
+                    }
                 }
                 _sessions.SetOptimized(new ProbeSummary
                 {
@@ -393,7 +408,10 @@ public sealed class OptimizerOrchestrator : IDisposable
                     continue;
                 }
 
-                if (!_settings.AutoSwitchEnabled) continue;
+                if (!_settings.AutoSwitchEnabled)
+                {
+                    continue;
+                }
 
                 // Re-evaluar candidatos periódicamente (directa + relay actual + resto).
                 var direct = await _analyzer.ProbeDirectAsync(server, ProbeMode.Quick, ct);
@@ -407,7 +425,10 @@ public sealed class OptimizerOrchestrator : IDisposable
 
                 var scores = new ScoreEngine().EvaluateAll(candidates);
                 var best = scores.Best;
-                if (best is null) continue;
+                if (best is null)
+                {
+                    continue;
+                }
 
                 if (best.CandidateId != bestSinceCandidateId)
                 {
@@ -429,7 +450,10 @@ public sealed class OptimizerOrchestrator : IDisposable
                     SecondsBestConsistent = (DateTimeOffset.UtcNow - bestConsistentSince).TotalSeconds
                 });
 
-                if (decision.Decision == AutoSwitchDecision.NoChange) continue;
+                if (decision.Decision == AutoSwitchDecision.NoChange)
+                {
+                    continue;
+                }
 
                 if (decision.Decision is AutoSwitchDecision.Failback or AutoSwitchDecision.EmergencyRestore)
                 {
@@ -466,7 +490,9 @@ public sealed class OptimizerOrchestrator : IDisposable
                 Log.Error($"Error en el bucle de monitoreo: {ex.Message}", ex);
                 PublishError($"Error de monitoreo: {ex.Message}");
                 if (_stateMachine.CanTransitionTo(OptimizerState.Degraded))
+                {
                     await _stateMachine.TransitionToAsync(OptimizerState.Degraded);
+                }
             }
         }
     }
@@ -510,11 +536,16 @@ public sealed class OptimizerOrchestrator : IDisposable
             try { _sessionCts?.Cancel(); } catch { }
             try
             {
-                if (_sessions.Current is not null) _sessions.EndSession(finalStatus);
+                if (_sessions.Current is not null)
+                {
+                    _sessions.EndSession(finalStatus);
+                }
             }
             catch (Exception ex) { Log.Warning($"Al cerrar sesión: {ex.Message}"); }
             if (_stateMachine.Current != OptimizerState.Idle)
+            {
                 await _stateMachine.TransitionToAsync(OptimizerState.Idle);
+            }
         }
     }
 

@@ -51,9 +51,16 @@ public sealed class ProfileManager
     public void Add(GameProfile profile)
     {
         var errors = profile.Validate();
-        if (errors.Count > 0) throw new ArgumentException(string.Join(" ", errors));
+        if (errors.Count > 0)
+        {
+            throw new ArgumentException(string.Join(" ", errors));
+        }
+
         if (_profiles.Any(p => p.Id == profile.Id))
+        {
             throw new ArgumentException("Ya existe un perfil con ese id.");
+        }
+
         _profiles.Add(profile);
         Persist();
         ProfileAdded?.Invoke(profile);
@@ -63,7 +70,11 @@ public sealed class ProfileManager
     {
         var existing = GetById(profile.Id) ?? throw new KeyNotFoundException("Perfil no encontrado.");
         var errors = profile.Validate();
-        if (errors.Count > 0) throw new ArgumentException(string.Join(" ", errors));
+        if (errors.Count > 0)
+        {
+            throw new ArgumentException(string.Join(" ", errors));
+        }
+
         var index = _profiles.IndexOf(existing);
         profile.UpdatedUtc = DateTime.UtcNow;
         _profiles[index] = profile;
@@ -105,9 +116,16 @@ public sealed class ProfileManager
         {
             throw new InvalidDataException("El archivo no es un JSON válido de perfil de juego.");
         }
-        if (profile is null) throw new InvalidDataException("El JSON no contiene un perfil de juego.");
+        if (profile is null)
+        {
+            throw new InvalidDataException("El JSON no contiene un perfil de juego.");
+        }
+
         if (replaceId || string.IsNullOrEmpty(profile.Id) || _profiles.Any(p => p.Id == profile.Id))
+        {
             profile.Id = Guid.NewGuid().ToString("N");
+        }
+
         Add(profile);
         return profile;
     }

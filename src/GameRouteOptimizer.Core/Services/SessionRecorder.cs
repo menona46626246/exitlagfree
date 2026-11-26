@@ -43,7 +43,11 @@ public sealed class SessionRecorder : IDisposable
 
     private void OnAppEvent(AppEvent evt)
     {
-        if (_current is null) return;
+        if (_current is null)
+        {
+            return;
+        }
+
         Record(evt.Severity, evt.Category, evt.Message, stateData: null);
     }
 
@@ -88,7 +92,11 @@ public sealed class SessionRecorder : IDisposable
     public void Record(EventSeverity severity, EventCategory category, string message, string? stateData = null)
     {
         var session = _current;
-        if (session is null) return;
+        if (session is null)
+        {
+            return;
+        }
+
         var evt = new SessionEvent
         {
             SessionId = session.Id,
@@ -116,7 +124,11 @@ public sealed class SessionRecorder : IDisposable
 
     private void Apply(Action<SessionRecord> mutator)
     {
-        if (_current is null) return;
+        if (_current is null)
+        {
+            return;
+        }
+
         mutator(_current);
         _db.UpsertSession(_current);
     }
@@ -150,9 +162,15 @@ public sealed class SessionRecorder : IDisposable
         sb.AppendLine();
 
         if (session.DirectBefore is { } d)
+        {
             sb.AppendLine($"**Directa antes:** {d.MeanMs:0.0} ms · p95 {d.P95Ms:0.0} · pérdida {d.LossRatio:P1} · jitter {d.JitterMs:0.0} ms · estabilidad {d.StabilityScore:0}/100");
+        }
+
         if (session.Optimized is { } o)
+        {
             sb.AppendLine($"**Optimizada:** {o.MeanMs:0.0} ms · p95 {o.P95Ms:0.0} · pérdida {o.LossRatio:P1} · jitter {o.JitterMs:0.0} ms · estabilidad {o.StabilityScore:0}/100");
+        }
+
         sb.AppendLine();
 
         sb.AppendLine("## Eventos");
@@ -160,7 +178,9 @@ public sealed class SessionRecorder : IDisposable
         sb.AppendLine("| Hora | Severidad | Categoría | Mensaje |");
         sb.AppendLine("|------|-----------|-----------|---------|");
         foreach (var e in session.Events)
+        {
             sb.AppendLine($"| {e.Timestamp:HH:mm:ss} | {e.Severity} | {e.Category} | {Escape(e.Message)} |");
+        }
 
         var path = Path.Combine(directory, $"informe-sesion-{session.Id[..8]}.md");
         File.WriteAllText(path, sb.ToString(), Encoding.UTF8);

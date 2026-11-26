@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 
 namespace GameRouteOptimizer.Core.Platform;
@@ -7,10 +8,13 @@ namespace GameRouteOptimizer.Core.Platform;
 /// <summary>Información y capacidades de la plataforma actual.</summary>
 public static class PlatformInfo
 {
+    [SupportedOSPlatformGuard("windows")]
     public static bool IsWindows => OperatingSystem.IsWindows();
 
+    [SupportedOSPlatformGuard("linux")]
     public static bool IsLinux => OperatingSystem.IsLinux();
 
+    [SupportedOSPlatformGuard("macos")]
     public static bool IsMacOS => OperatingSystem.IsMacOS();
 
     /// <summary>¿Se está ejecutando con privilegios elevados (admin/root)?</summary>
@@ -51,11 +55,18 @@ public static class PlatformInfo
         var exts = IsWindows ? new[] { ".exe", ".cmd", ".bat", "" } : new[] { "" };
         foreach (var dir in new[] { AppContext.BaseDirectory }.Concat(paths))
         {
-            if (string.IsNullOrWhiteSpace(dir)) continue;
+            if (string.IsNullOrWhiteSpace(dir))
+            {
+                continue;
+            }
+
             foreach (var ext in exts)
             {
                 var candidate = Path.Combine(dir.Trim('"'), command + ext);
-                if (File.Exists(candidate)) return true;
+                if (File.Exists(candidate))
+                {
+                    return true;
+                }
             }
         }
         return false;
@@ -70,7 +81,11 @@ public static class PlatformInfo
             return Path.Combine(appData, "GameRouteOptimizer");
         }
         var xdg = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
-        if (!string.IsNullOrWhiteSpace(xdg)) return Path.Combine(xdg, "GameRouteOptimizer");
+        if (!string.IsNullOrWhiteSpace(xdg))
+        {
+            return Path.Combine(xdg, "GameRouteOptimizer");
+        }
+
         return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
             ".local", "share", "GameRouteOptimizer");
     }
@@ -101,13 +116,16 @@ public static class CommandRunner
             StandardOutputEncoding = Encoding.UTF8,
             StandardErrorEncoding = Encoding.UTF8
         };
-        foreach (var a in args) psi.ArgumentList.Add(a);
+        foreach (var a in args)
+        {
+            psi.ArgumentList.Add(a);
+        }
 
         using var proc = new Process { StartInfo = psi };
         var sbOut = new StringBuilder();
         var sbErr = new StringBuilder();
-        proc.OutputDataReceived += (_, e) => { if (e.Data is not null) sbOut.AppendLine(e.Data); };
-        proc.ErrorDataReceived += (_, e) => { if (e.Data is not null) sbErr.AppendLine(e.Data); };
+        proc.OutputDataReceived += (_, e) => { if (e.Data is not null) { sbOut.AppendLine(e.Data); } };
+        proc.ErrorDataReceived += (_, e) => { if (e.Data is not null) { sbErr.AppendLine(e.Data); } };
 
         try
         {

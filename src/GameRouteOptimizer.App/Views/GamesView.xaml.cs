@@ -17,16 +17,26 @@ public partial class GamesView : UserControl
         DataContextChanged += (_, _) =>
         {
             _vm = DataContext as GamesViewModel;
-            if (_vm is not null) _vm.RequestEdit += OpenEditor;
+            if (_vm is not null)
+            {
+                _vm.RequestEdit += OpenEditor;
+            }
         };
     }
 
     private void OpenEditor(GameProfile profile)
     {
-        if (AppServices.Current is null) return;
+        if (AppServices.Current is null)
+        {
+            return;
+        }
+
         var existed = AppServices.Current.Profiles.Profiles.Any(p => p.Id == profile.Id);
         var dialog = new GameProfileDialog(profile) { Owner = Window.GetWindow(this) };
-        if (dialog.ShowDialog() is not true) return;
+        if (dialog.ShowDialog() is not true)
+        {
+            return;
+        }
 
         var editor = dialog.Editor;
         if (!string.IsNullOrEmpty(editor.ServersError))
@@ -39,9 +49,14 @@ public partial class GamesView : UserControl
         {
             var profileToSave = dialog.EditedProfile;
             if (existed)
+            {
                 AppServices.Current.Profiles.Update(profileToSave);
+            }
             else
+            {
                 AppServices.Current.Profiles.Add(profileToSave);
+            }
+
             AppServices.Current.Notifications.Success($"Perfil '{profileToSave.Name}' guardado.");
             _vm?.Reload();
         }

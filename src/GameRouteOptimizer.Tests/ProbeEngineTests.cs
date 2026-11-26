@@ -22,9 +22,15 @@ internal sealed class FakeProbeTransport : IProbeTransport
     {
         IcmpCalls++;
         if (!IcmpSupported)
+        {
             return Task.FromException<ProbeSample>(new ProbeUnsupportedException("ICMP no disponible (fake)."));
+        }
+
         if (IcmpLatency.TryGetValue(host, out var ms))
+        {
             return Task.FromResult(new ProbeSample(true, ms, DateTimeOffset.UtcNow, "icmp"));
+        }
+
         return Task.FromResult(ProbeSample.Fail("icmp", "timeout"));
     }
 
@@ -32,7 +38,10 @@ internal sealed class FakeProbeTransport : IProbeTransport
     {
         TcpCalls++;
         if (TcpLatency.TryGetValue(host, out var ms))
+        {
             return Task.FromResult(new ProbeSample(true, ms, DateTimeOffset.UtcNow, "tcp"));
+        }
+
         return Task.FromResult(ProbeSample.Fail("tcp", "timeout"));
     }
 

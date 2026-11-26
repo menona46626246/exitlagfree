@@ -85,6 +85,9 @@ public sealed class AppSettings
     /// <summary>El usuario confirmó que revisó los ToS de sus juegos respecto a VPN/routing.</summary>
     public bool UserAcknowledgedGameToS { get; set; } = false;
 
+    /// <summary>Indica si el asistente de primera ejecución ya fue completado u omitido.</summary>
+    public bool OnboardingCompleted { get; set; } = false;
+
     // --- Detección de juegos ---
     /// <summary>El usuario autorizó escanear carpetas comunes para detectar juegos instalados.</summary>
     public bool AllowGameScan { get; set; } = false;
