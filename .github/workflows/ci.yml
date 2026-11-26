@@ -12,18 +12,17 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        shell: pwsh
+        run: |
+          git init
+          git remote add origin "https://github.com/${{ github.repository }}.git"
+          git fetch --depth 1 origin "${{ github.sha }}"
+          git checkout FETCH_HEAD
 
-      - name: Setup .NET 8 SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
+      - name: Verify .NET SDK
+        shell: pwsh
+        run: dotnet --version
 
-      - name: Restore dependencies
-        run: dotnet restore GameRouteOptimizer.sln
-
-      - name: Build solution (Release)
-        run: dotnet build GameRouteOptimizer.sln -c Release --no-restore
-
-      - name: Run unit tests
-        run: dotnet test src/GameRouteOptimizer.Tests/GameRouteOptimizer.Tests.csproj -c Release --no-build --verbosity normal
+      - name: Build and test (Release)
+        shell: pwsh
+        run: powershell -ExecutionPolicy Bypass -File scripts\build.ps1 -Release
